@@ -1,8 +1,8 @@
-import type { Breed } from '../../api/breeds';
+import type { Breed } from "../../api/breeds";
 
-export type SizeBand = 'small' | 'medium' | 'large' | 'giant';
-export type CoatCategory = 'short' | 'medium' | 'long' | 'wire' | 'hairless';
-export type HypoallergenicFilter = 'any' | 'yes' | 'no';
+export type SizeBand = "small" | "medium" | "large" | "giant";
+export type CoatCategory = "short" | "medium" | "long" | "wire" | "hairless";
+export type HypoallergenicFilter = "any" | "yes" | "no";
 
 export type BreedFilters = {
   groupIds: string[];
@@ -18,7 +18,7 @@ export const emptyBreedFilters: BreedFilters = {
   groupIds: [],
   sizes: [],
   coats: [],
-  hypoallergenic: 'any',
+  hypoallergenic: "any",
   goodWithChildren: null,
   goodWithDogs: null,
   goodWithStrangers: null,
@@ -26,18 +26,19 @@ export const emptyBreedFilters: BreedFilters = {
 
 export function deriveSizeBand(weight: number | null): SizeBand | null {
   if (weight === null) return null;
-  if (weight <= 10) return 'small';
-  if (weight <= 25) return 'medium';
-  if (weight <= 45) return 'large';
-  return 'giant';
+  if (weight <= 10) return "small";
+  if (weight <= 25) return "medium";
+  if (weight <= 45) return "large";
+  return "giant";
 }
 
 export function deriveCoatCategory(breed: Breed): CoatCategory | null {
-  if (breed.coatType === 'wire') return 'wire';
-  if (breed.coatType === 'hairless' || breed.coatLength === 'hairless') return 'hairless';
-  return breed.coatLength === 'short' ||
-    breed.coatLength === 'medium' ||
-    breed.coatLength === 'long'
+  if (breed.coatType === "wire") return "wire";
+  if (breed.coatType === "hairless" || breed.coatLength === "hairless")
+    return "hairless";
+  return breed.coatLength === "short" ||
+    breed.coatLength === "medium" ||
+    breed.coatLength === "long"
     ? breed.coatLength
     : null;
 }
@@ -47,7 +48,7 @@ export function countActiveFilters(filters: BreedFilters): number {
     Number(filters.groupIds.length > 0) +
     Number(filters.sizes.length > 0) +
     Number(filters.coats.length > 0) +
-    Number(filters.hypoallergenic !== 'any') +
+    Number(filters.hypoallergenic !== "any") +
     Number(filters.goodWithChildren !== null) +
     Number(filters.goodWithDogs !== null) +
     Number(filters.goodWithStrangers !== null)
@@ -68,19 +69,36 @@ export function filterBreeds(
         name.toLocaleLowerCase().includes(normalizedQuery),
       );
     if (!matchesSearch) return false;
-    if (filters.groupIds.length > 0 && (!breed.groupId || !filters.groupIds.includes(breed.groupId))) {
+    if (
+      filters.groupIds.length > 0 &&
+      (!breed.groupId || !filters.groupIds.includes(breed.groupId))
+    ) {
       return false;
     }
     const size = deriveSizeBand(breed.maximumWeight);
-    if (filters.sizes.length > 0 && (!size || !filters.sizes.includes(size))) return false;
+    if (filters.sizes.length > 0 && (!size || !filters.sizes.includes(size)))
+      return false;
     const coat = deriveCoatCategory(breed);
-    if (filters.coats.length > 0 && (!coat || !filters.coats.includes(coat))) return false;
-    if (filters.hypoallergenic === 'yes' && !breed.hypoallergenic) return false;
-    if (filters.hypoallergenic === 'no' && breed.hypoallergenic) return false;
+    if (filters.coats.length > 0 && (!coat || !filters.coats.includes(coat)))
+      return false;
+    if (filters.hypoallergenic === "yes" && !breed.hypoallergenic) return false;
+    if (filters.hypoallergenic === "no" && breed.hypoallergenic) return false;
     const traits = breed.socialTraits;
-    if (filters.goodWithChildren !== null && (!traits || traits.goodWithChildren < filters.goodWithChildren)) return false;
-    if (filters.goodWithDogs !== null && (!traits || traits.goodWithDogs < filters.goodWithDogs)) return false;
-    if (filters.goodWithStrangers !== null && (!traits || traits.goodWithStrangers < filters.goodWithStrangers)) return false;
+    if (
+      filters.goodWithChildren !== null &&
+      (!traits || traits.goodWithChildren < filters.goodWithChildren)
+    )
+      return false;
+    if (
+      filters.goodWithDogs !== null &&
+      (!traits || traits.goodWithDogs < filters.goodWithDogs)
+    )
+      return false;
+    if (
+      filters.goodWithStrangers !== null &&
+      (!traits || traits.goodWithStrangers < filters.goodWithStrangers)
+    )
+      return false;
     return true;
   });
 }

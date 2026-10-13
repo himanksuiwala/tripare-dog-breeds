@@ -1,47 +1,46 @@
-import type { StaticScreenProps } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
-import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import type { StaticScreenProps } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
-import type { BreedDetails, BreedImage, BreedTraits, Range } from '../api/breedDetails';
+import type {
+  BreedDetails,
+  BreedImage,
+  BreedTraits,
+  Range,
+} from "../api/breedDetails";
 import {
   EXERCISE_MINUTES_MAX,
   normalizeScale,
   TRAIT_SCALE_MAX,
-} from '../features/breeds/traitScale';
-import { useBreedDetails } from '../features/breeds/useBreedDetails';
+} from "../features/breeds/traitScale";
+import { useBreedDetails } from "../features/breeds/useBreedDetails";
 
 type Props = StaticScreenProps<{ breedId: string }>;
-type DetailTab = 'overview' | 'traits' | 'gallery';
+type DetailTab = "overview" | "traits" | "gallery";
 
 const TABS: { id: DetailTab; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'traits', label: 'Traits' },
-  { id: 'gallery', label: 'Gallery' },
+  { id: "overview", label: "Overview" },
+  { id: "traits", label: "Traits" },
+  { id: "gallery", label: "Gallery" },
 ];
 
 export function BreedDetailsScreen({ route }: Props) {
   const navigation = useNavigation();
   const { state, retry } = useBreedDetails(route.params.breedId);
-  const [selectedTab, setSelectedTab] = useState<DetailTab>('overview');
+  const [selectedTab, setSelectedTab] = useState<DetailTab>("overview");
 
-  const breedName = state.status === 'success' ? state.details.name : null;
+  const breedName = state.status === "success" ? state.details.name : null;
   useEffect(() => {
-    navigation.setOptions({ title: breedName ?? 'Breed details' });
+    navigation.setOptions({ title: breedName ?? "Breed details" });
   }, [breedName, navigation]);
 
-  if (state.status === 'loading') {
+  if (state.status === "loading") {
     return <DetailsSkeleton />;
   }
 
-  if (state.status === 'not-found') {
+  if (state.status === "not-found") {
     return (
       <FailureState
         description="This breed may no longer be available."
@@ -51,7 +50,7 @@ export function BreedDetailsScreen({ route }: Props) {
     );
   }
 
-  if (state.status === 'error') {
+  if (state.status === "error") {
     return (
       <FailureState
         description="Check your connection and try loading these details again."
@@ -70,9 +69,15 @@ export function BreedDetailsScreen({ route }: Props) {
         key={selectedTab}
         showsVerticalScrollIndicator={false}
       >
-        {selectedTab === 'overview' ? <Overview details={state.details} /> : null}
-        {selectedTab === 'traits' ? <Traits traits={state.details.traits} /> : null}
-        {selectedTab === 'gallery' ? <GalleryGrid details={state.details} /> : null}
+        {selectedTab === "overview" ? (
+          <Overview details={state.details} />
+        ) : null}
+        {selectedTab === "traits" ? (
+          <Traits traits={state.details.traits} />
+        ) : null}
+        {selectedTab === "gallery" ? (
+          <GalleryGrid details={state.details} />
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -96,8 +101,8 @@ function TabBar({
               accessibilityState={{ selected: isSelected }}
               className={
                 isSelected
-                  ? 'flex-1 items-center rounded-xl bg-white py-2.5'
-                  : 'flex-1 items-center rounded-xl py-2.5'
+                  ? "flex-1 items-center rounded-xl bg-white py-2.5"
+                  : "flex-1 items-center rounded-xl py-2.5"
               }
               key={tab.id}
               onPress={() => onSelect(tab.id)}
@@ -105,8 +110,8 @@ function TabBar({
               <Text
                 className={
                   isSelected
-                    ? 'text-sm font-bold text-doggo-ink'
-                    : 'text-sm font-bold text-doggo-muted'
+                    ? "text-sm font-bold text-doggo-ink"
+                    : "text-sm font-bold text-doggo-muted"
                 }
               >
                 {tab.label}
@@ -124,25 +129,46 @@ function Overview({ details }: { details: BreedDetails }) {
     <View>
       <Hero details={details} />
       <Section title="About">
-        <Text className="text-base leading-7 text-doggo-muted">{details.description}</Text>
+        <Text className="text-base leading-7 text-doggo-muted">
+          {details.description}
+        </Text>
       </Section>
       <Section title="At a glance">
         <View className="rounded-3xl border border-doggo-border bg-white p-4">
-          <Metric label="Life span" value={`${details.life.min}–${details.life.max} years`} />
+          <Metric
+            label="Life span"
+            value={`${details.life.min}–${details.life.max} years`}
+          />
           <View className="my-4 h-px bg-doggo-border" />
           <Text className="mb-3 text-xs font-bold uppercase tracking-wider text-doggo-muted">
             Weight
           </Text>
           <View className="flex-row gap-3">
-            <MeasurementCard label="Male" range={details.maleWeight} unit="kg" />
-            <MeasurementCard label="Female" range={details.femaleWeight} unit="kg" />
+            <MeasurementCard
+              label="Male"
+              range={details.maleWeight}
+              unit="kg"
+            />
+            <MeasurementCard
+              label="Female"
+              range={details.femaleWeight}
+              unit="kg"
+            />
           </View>
           <Text className="mb-3 mt-5 text-xs font-bold uppercase tracking-wider text-doggo-muted">
             Height
           </Text>
           <View className="flex-row gap-3">
-            <MeasurementCard label="Male" range={details.maleHeight} unit="cm" />
-            <MeasurementCard label="Female" range={details.femaleHeight} unit="cm" />
+            <MeasurementCard
+              label="Male"
+              range={details.maleHeight}
+              unit="cm"
+            />
+            <MeasurementCard
+              label="Female"
+              range={details.femaleHeight}
+              unit="cm"
+            />
           </View>
         </View>
       </Section>
@@ -181,22 +207,20 @@ function Hero({ details }: { details: BreedDetails }) {
       )}
       {hero?.attribution && !showFallback ? (
         <Text className="px-4 py-2 text-xs text-doggo-muted">
-          {[hero.attribution.author, hero.attribution.license, hero.attribution.source]
+          {[
+            hero.attribution.author,
+            hero.attribution.license,
+            hero.attribution.source,
+          ]
             .filter(Boolean)
-            .join(' · ')}
+            .join(" · ")}
         </Text>
       ) : null}
     </View>
   );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <View className="mt-7">
       <Text className="mb-3 text-xl font-black text-doggo-ink">{title}</Text>
@@ -233,12 +257,14 @@ function MeasurementCard({
   );
 }
 
-function Origin({ origin }: { origin: BreedDetails['origin'] }) {
+function Origin({ origin }: { origin: BreedDetails["origin"] }) {
   const entries = [
-    { label: 'Country', value: origin.country },
-    { label: 'Region', value: origin.region },
-    { label: 'Era', value: origin.era },
-  ].filter((entry): entry is { label: string; value: string } => Boolean(entry.value));
+    { label: "Country", value: origin.country },
+    { label: "Region", value: origin.region },
+    { label: "Era", value: origin.era },
+  ].filter((entry): entry is { label: string; value: string } =>
+    Boolean(entry.value),
+  );
 
   return (
     <Section title="Origin">
@@ -246,7 +272,9 @@ function Origin({ origin }: { origin: BreedDetails['origin'] }) {
         {entries.length > 0 ? (
           entries.map((entry, index) => (
             <View key={entry.label}>
-              {index > 0 ? <View className="my-3 h-px bg-doggo-border" /> : null}
+              {index > 0 ? (
+                <View className="my-3 h-px bg-doggo-border" />
+              ) : null}
               <Metric label={entry.label} value={entry.value} />
             </View>
           ))
@@ -263,8 +291,13 @@ function ChipSection({ title, values }: { title: string; values: string[] }) {
     <Section title={title}>
       <View className="flex-row flex-wrap gap-2">
         {values.map((value) => (
-          <View className="rounded-full bg-doggo-accent-soft px-3 py-2" key={value}>
-            <Text className="text-sm font-semibold text-doggo-accent">{value}</Text>
+          <View
+            className="rounded-full bg-doggo-accent-soft px-3 py-2"
+            key={value}
+          >
+            <Text className="text-sm font-semibold text-doggo-accent">
+              {value}
+            </Text>
           </View>
         ))}
       </View>
@@ -272,32 +305,38 @@ function ChipSection({ title, values }: { title: string; values: string[] }) {
   );
 }
 
-type ScoredTraitKey = Exclude<keyof BreedTraits, 'exerciseMinutes' | 'temperament'>;
+type ScoredTraitKey = Exclude<
+  keyof BreedTraits,
+  "exerciseMinutes" | "temperament"
+>;
 
-const TRAIT_GROUPS: { title: string; traits: { key: ScoredTraitKey; label: string }[] }[] = [
+const TRAIT_GROUPS: {
+  title: string;
+  traits: { key: ScoredTraitKey; label: string }[];
+}[] = [
   {
-    title: 'Lifestyle',
+    title: "Lifestyle",
     traits: [
-      { key: 'energy', label: 'Energy' },
-      { key: 'barking', label: 'Barking' },
-      { key: 'apartmentFriendly', label: 'Apartment friendly' },
-      { key: 'trainability', label: 'Trainability' },
+      { key: "energy", label: "Energy" },
+      { key: "barking", label: "Barking" },
+      { key: "apartmentFriendly", label: "Apartment friendly" },
+      { key: "trainability", label: "Trainability" },
     ],
   },
   {
-    title: 'Care',
+    title: "Care",
     traits: [
-      { key: 'grooming', label: 'Grooming needs' },
-      { key: 'shedding', label: 'Shedding' },
-      { key: 'drooling', label: 'Drooling' },
+      { key: "grooming", label: "Grooming needs" },
+      { key: "shedding", label: "Shedding" },
+      { key: "drooling", label: "Drooling" },
     ],
   },
   {
-    title: 'Social',
+    title: "Social",
     traits: [
-      { key: 'goodWithChildren', label: 'Good with children' },
-      { key: 'goodWithDogs', label: 'Good with dogs' },
-      { key: 'goodWithStrangers', label: 'Good with strangers' },
+      { key: "goodWithChildren", label: "Good with children" },
+      { key: "goodWithDogs", label: "Good with dogs" },
+      { key: "goodWithStrangers", label: "Good with strangers" },
     ],
   },
 ];
@@ -326,7 +365,9 @@ function Traits({ traits }: { traits: BreedTraits }) {
 }
 
 function TraitScale({ label, value }: { label: string; value: number }) {
-  const filledSegments = Math.round(normalizeScale(value, TRAIT_SCALE_MAX) * TRAIT_SCALE_MAX);
+  const filledSegments = Math.round(
+    normalizeScale(value, TRAIT_SCALE_MAX) * TRAIT_SCALE_MAX,
+  );
 
   return (
     <View
@@ -335,15 +376,17 @@ function TraitScale({ label, value }: { label: string; value: number }) {
     >
       <View className="mb-2 flex-row items-center justify-between">
         <Text className="text-sm font-bold text-doggo-ink">{label}</Text>
-        <Text className="text-xs font-semibold text-doggo-muted">{value}/5</Text>
+        <Text className="text-xs font-semibold text-doggo-muted">
+          {value}/5
+        </Text>
       </View>
       <View className="flex-row gap-1.5">
         {Array.from({ length: TRAIT_SCALE_MAX }, (_, index) => (
           <View
             className={
               index < filledSegments
-                ? 'h-2 flex-1 rounded-full bg-doggo-accent'
-                : 'h-2 flex-1 rounded-full bg-doggo-skeleton'
+                ? "h-2 flex-1 rounded-full bg-doggo-accent"
+                : "h-2 flex-1 rounded-full bg-doggo-skeleton"
             }
             key={index}
           />
@@ -358,10 +401,17 @@ function ExerciseCard({ minutes }: { minutes: number }) {
 
   return (
     <View className="rounded-3xl bg-doggo-accent p-5">
-      <Text className="text-sm font-semibold text-white/80">Daily exercise</Text>
-      <Text className="mt-1 text-3xl font-black text-white">{minutes} min/day</Text>
+      <Text className="text-sm font-semibold text-white/80">
+        Daily exercise
+      </Text>
+      <Text className="mt-1 text-3xl font-black text-white">
+        {minutes} min/day
+      </Text>
       <View className="mt-4 h-2 overflow-hidden rounded-full bg-white/30">
-        <View className="h-full rounded-full bg-white" style={{ width: `${progress}%` }} />
+        <View
+          className="h-full rounded-full bg-white"
+          style={{ width: `${progress}%` }}
+        />
       </View>
     </View>
   );
@@ -395,7 +445,7 @@ function GalleryGrid({ details }: { details: BreedDetails }) {
           imageNumber={index + 1}
           key={image.id}
           onPress={() =>
-            navigation.navigate('BreedGallery', {
+            navigation.navigate("BreedGallery", {
               breedId: details.id,
               imageId: image.id,
             })
@@ -447,7 +497,10 @@ function GalleryThumbnail({
 
 function DetailsSkeleton() {
   return (
-    <View className="flex-1 bg-doggo-canvas px-5 pt-5" accessibilityLabel="Loading breed details">
+    <View
+      className="flex-1 bg-doggo-canvas px-5 pt-5"
+      accessibilityLabel="Loading breed details"
+    >
       <View className="h-11 rounded-2xl bg-doggo-skeleton" />
       <View className="mt-5 h-64 rounded-3xl bg-doggo-skeleton" />
       <View className="mt-7 h-6 w-1/3 rounded-full bg-doggo-skeleton" />
@@ -469,8 +522,12 @@ function FailureState({
 }) {
   return (
     <View className="flex-1 items-center justify-center bg-doggo-canvas px-8 pb-16">
-      <Text className="text-center text-2xl font-black text-doggo-ink">{title}</Text>
-      <Text className="mt-3 text-center text-base leading-6 text-doggo-muted">{description}</Text>
+      <Text className="text-center text-2xl font-black text-doggo-ink">
+        {title}
+      </Text>
+      <Text className="mt-3 text-center text-base leading-6 text-doggo-muted">
+        {description}
+      </Text>
       <Pressable
         accessibilityRole="button"
         className="mt-6 rounded-full bg-doggo-accent px-6 py-3 active:opacity-80"

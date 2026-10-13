@@ -1,31 +1,48 @@
-import type { Breed, BreedPage } from '../../api/breeds';
-import { fetchBreedPageWithLoader, mergeBreedPages } from './useBreedCatalogue';
+import type { Breed, BreedPage } from "../../api/breeds";
+import { fetchBreedPageWithLoader, mergeBreedPages } from "./useBreedCatalogue";
 
 function breed(id: string): Breed {
   return {
-    id, name: id, lifeMin: 1, lifeMax: 2, hypoallergenic: false,
-    thumbnailUrl: null, otherNames: [], groupId: null, maximumWeight: null,
-    coatLength: null, coatType: null, socialTraits: null,
+    id,
+    name: id,
+    lifeMin: 1,
+    lifeMax: 2,
+    hypoallergenic: false,
+    thumbnailUrl: null,
+    otherNames: [],
+    groupId: null,
+    maximumWeight: null,
+    coatLength: null,
+    coatType: null,
+    socialTraits: null,
   };
 }
 
-describe('mergeBreedPages', () => {
-  it('orders pages and deduplicates breed IDs', () => {
-    expect(mergeBreedPages([
-      { page: 2, breeds: [breed('b'), breed('duplicate')] },
-      { page: 1, breeds: [breed('a'), breed('duplicate')] },
-    ]).map((item) => item.id)).toEqual(['a', 'duplicate', 'b']);
+describe("mergeBreedPages", () => {
+  it("orders pages and deduplicates breed IDs", () => {
+    expect(
+      mergeBreedPages([
+        { page: 2, breeds: [breed("b"), breed("duplicate")] },
+        { page: 1, breeds: [breed("a"), breed("duplicate")] },
+      ]).map((item) => item.id),
+    ).toEqual(["a", "duplicate", "b"]);
   });
 });
 
-describe('fetchBreedPageWithLoader', () => {
-  it('retries an individual failed page without discarding the catalogue', async () => {
+describe("fetchBreedPageWithLoader", () => {
+  it("retries an individual failed page without discarding the catalogue", async () => {
     const page: BreedPage = {
-      breeds: [breed('a')],
-      pagination: { currentPage: 2, nextPage: 3, lastPage: 6, totalRecords: 283 },
+      breeds: [breed("a")],
+      pagination: {
+        currentPage: 2,
+        nextPage: 3,
+        lastPage: 6,
+        totalRecords: 283,
+      },
     };
-    const loader = jest.fn()
-      .mockRejectedValueOnce(new Error('temporary network failure'))
+    const loader = jest
+      .fn()
+      .mockRejectedValueOnce(new Error("temporary network failure"))
       .mockResolvedValueOnce(page);
 
     await expect(

@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
 import {
   fetchBreedGroups,
   fetchBreedPage,
   type Breed,
   type BreedGroup,
-} from '../../api/breeds';
+} from "../../api/breeds";
 
 const CATALOGUE_REQUEST_ATTEMPTS = 3;
 
@@ -35,7 +35,9 @@ const initialState: CatalogueState = {
   errorMessage: null,
 };
 
-export function mergeBreedPages(pages: { page: number; breeds: Breed[] }[]): Breed[] {
+export function mergeBreedPages(
+  pages: { page: number; breeds: Breed[] }[],
+): Breed[] {
   const unique = new Map<string, Breed>();
   for (const result of pages.sort((a, b) => a.page - b.page)) {
     for (const breed of result.breeds) unique.set(breed.id, breed);
@@ -67,7 +69,7 @@ export async function fetchBreedPageWithLoader(
     }
   }
   throw new Error(
-    `Page ${pageNumber}: ${lastError instanceof Error ? lastError.message : 'Could not load breed page.'}`,
+    `Page ${pageNumber}: ${lastError instanceof Error ? lastError.message : "Could not load breed page."}`,
   );
 }
 
@@ -92,13 +94,20 @@ export function useBreedCatalogue() {
         }));
 
         const remaining = await Promise.all(
-          Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => index + 2).map(
-            async (pageNumber) => {
-              const page = await fetchBreedPageWithRetry(pageNumber, controller.signal);
-              setState((current) => ({ ...current, loadedPages: current.loadedPages + 1 }));
-              return { page: pageNumber, breeds: page.breeds };
-            },
-          ),
+          Array.from(
+            { length: Math.max(totalPages - 1, 0) },
+            (_, index) => index + 2,
+          ).map(async (pageNumber) => {
+            const page = await fetchBreedPageWithRetry(
+              pageNumber,
+              controller.signal,
+            );
+            setState((current) => ({
+              ...current,
+              loadedPages: current.loadedPages + 1,
+            }));
+            return { page: pageNumber, breeds: page.breeds };
+          }),
         );
         const groupResult = await groupsRequest;
         const breeds = mergeBreedPages([
@@ -125,7 +134,8 @@ export function useBreedCatalogue() {
           isLoading: false,
           isRefreshing: false,
           hasError: current.breeds.length === 0,
-          errorMessage: error instanceof Error ? error.message : 'Unknown catalogue error',
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown catalogue error",
         }));
       });
 
@@ -133,7 +143,12 @@ export function useBreedCatalogue() {
   }, [requestKey]);
 
   const retry = useCallback(() => {
-    setState((current) => ({ ...current, isLoading: current.breeds.length === 0, hasError: false, errorMessage: null }));
+    setState((current) => ({
+      ...current,
+      isLoading: current.breeds.length === 0,
+      hasError: false,
+      errorMessage: null,
+    }));
     setRequestKey((key) => key + 1);
   }, []);
   const refresh = useCallback(() => {

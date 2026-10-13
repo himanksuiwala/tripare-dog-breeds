@@ -1,14 +1,14 @@
-import { BREEDS_PAGE_SIZE, fetchBreedPage, parseBreedPage } from './breeds';
+import { BREEDS_PAGE_SIZE, fetchBreedPage, parseBreedPage } from "./breeds";
 
 const validResponse = {
   data: [
     {
-      id: 'breed-1',
+      id: "breed-1",
       attributes: {
-        name: 'Affenpinscher',
+        name: "Affenpinscher",
         life: { min: 14, max: 16 },
         hypoallergenic: true,
-        images: [{ thumb: 'https://images.example/affenpinscher.jpg' }],
+        images: [{ thumb: "https://images.example/affenpinscher.jpg" }],
       },
     },
   ],
@@ -17,17 +17,17 @@ const validResponse = {
   },
 };
 
-describe('parseBreedPage', () => {
-  it('maps breeds and pagination metadata', () => {
+describe("parseBreedPage", () => {
+  it("maps breeds and pagination metadata", () => {
     expect(parseBreedPage(validResponse)).toEqual({
       breeds: [
         {
-          id: 'breed-1',
-          name: 'Affenpinscher',
+          id: "breed-1",
+          name: "Affenpinscher",
           lifeMin: 14,
           lifeMax: 16,
           hypoallergenic: true,
-          thumbnailUrl: 'https://images.example/affenpinscher.jpg',
+          thumbnailUrl: "https://images.example/affenpinscher.jpg",
           otherNames: [],
           groupId: null,
           maximumWeight: null,
@@ -45,22 +45,22 @@ describe('parseBreedPage', () => {
     });
   });
 
-  it('skips malformed breed records while preserving a valid page', () => {
+  it("skips malformed breed records while preserving a valid page", () => {
     const response = {
       ...validResponse,
-      data: [...validResponse.data, { id: 'broken', attributes: {} }],
+      data: [...validResponse.data, { id: "broken", attributes: {} }],
     };
 
     expect(parseBreedPage(response).breeds).toHaveLength(1);
   });
 
-  it('rejects malformed pagination metadata', () => {
+  it("rejects malformed pagination metadata", () => {
     expect(() =>
-      parseBreedPage({ data: [], meta: { pagination: { current: 'one' } } }),
-    ).toThrow('invalid pagination');
+      parseBreedPage({ data: [], meta: { pagination: { current: "one" } } }),
+    ).toThrow("invalid pagination");
   });
 
-  it('accepts a final page regardless of its optional next-page sentinel', () => {
+  it("accepts a final page regardless of its optional next-page sentinel", () => {
     const finalPage = {
       ...validResponse,
       meta: { pagination: { current: 6, prev: 5, records: 283 } },
@@ -74,10 +74,10 @@ describe('parseBreedPage', () => {
     });
   });
 
-  it('normalizes numeric pagination strings returned by the native request path', () => {
+  it("normalizes numeric pagination strings returned by the native request path", () => {
     const page = {
       ...validResponse,
-      meta: { pagination: { current: '6', last: '6', records: '283' } },
+      meta: { pagination: { current: "6", last: "6", records: "283" } },
     };
     expect(parseBreedPage(page).pagination).toEqual({
       currentPage: 6,
@@ -88,8 +88,8 @@ describe('parseBreedPage', () => {
   });
 });
 
-describe('fetchBreedPage', () => {
-  it('requests the selected page with the agreed page size', async () => {
+describe("fetchBreedPage", () => {
+  it("requests the selected page with the agreed page size", async () => {
     const fetcher = jest.fn(async () => ({
       ok: true,
       status: 200,

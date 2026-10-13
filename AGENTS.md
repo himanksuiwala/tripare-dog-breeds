@@ -15,13 +15,14 @@ Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
 ```bash
 npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
 npx expo start              # start the dev server
+npm run format              # format changed files with Prettier
 npx expo lint               # lint
 npx tsc --noEmit            # typecheck
 npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 ```
 
-Run lint and typecheck before declaring any task done.
+After making file changes, run Prettier, then lint and typecheck before declaring the task done.
 
 ## Navigation & Routing
 
@@ -53,7 +54,7 @@ Docs: https://docs.expo.dev/eas/index.md
 
 - This project uses NativeWind v4 with Tailwind CSS v3. Before changing NativeWind setup or relying on an unfamiliar utility, fetch https://www.nativewind.dev/llms.txt and follow the linked v4 documentation; do not mix in v5 release-candidate instructions.
 - Prefer `className` utilities on React Native core components over new `StyleSheet.create` declarations. Keep layouts mobile-first and add `ios:`, `android:`, `web:`, or `native:` variants only where platform behavior differs.
-- Keep all files containing utility classes covered by the `content` globs in `tailwind.config.js`. Write complete, statically detectable class strings; do not construct utility names such as ``bg-${color}-500``.
+- Keep all files containing utility classes covered by the `content` globs in `tailwind.config.js`. Write complete, statically detectable class strings; do not construct utility names such as `bg-${color}-500`.
 - Define reusable design tokens in `tailwind.config.js` under `theme.extend` instead of scattering arbitrary values through components.
 - React Native layout defaults differ from the web. Set direction explicitly when needed (`flex-row` or `flex-col`) and use `flex-1` intentionally.
 - For conditional or dark-mode styling, declare both states, for example `text-slate-900 dark:text-white`, so native style updates remain predictable.

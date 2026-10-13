@@ -1,8 +1,8 @@
-import type { BreedPage } from '../../api/breeds';
+import type { BreedPage } from "../../api/breeds";
 import {
   breedPaginationReducer,
   initialBreedPaginationState,
-} from './breedPagination';
+} from "./breedPagination";
 
 function page(id: string, nextPage: number | null): BreedPage {
   return {
@@ -31,58 +31,58 @@ function page(id: string, nextPage: number | null): BreedPage {
   };
 }
 
-describe('breedPaginationReducer', () => {
-  it('replaces data after the first page or refresh', () => {
+describe("breedPaginationReducer", () => {
+  it("replaces data after the first page or refresh", () => {
     const state = breedPaginationReducer(initialBreedPaginationState, {
-      type: 'replace-success',
-      page: page('one', 2),
+      type: "replace-success",
+      page: page("one", 2),
     });
 
-    expect(state.breeds.map((breed) => breed.id)).toEqual(['one']);
+    expect(state.breeds.map((breed) => breed.id)).toEqual(["one"]);
     expect(state.totalRecords).toBe(283);
     expect(state.nextPage).toBe(2);
     expect(state.isInitialLoading).toBe(false);
   });
 
-  it('appends new pages without duplicating breeds', () => {
+  it("appends new pages without duplicating breeds", () => {
     const firstState = breedPaginationReducer(initialBreedPaginationState, {
-      type: 'replace-success',
-      page: page('one', 2),
+      type: "replace-success",
+      page: page("one", 2),
     });
     const duplicateState = breedPaginationReducer(firstState, {
-      type: 'append-success',
-      page: page('one', 3),
+      type: "append-success",
+      page: page("one", 3),
     });
     const finalState = breedPaginationReducer(duplicateState, {
-      type: 'append-success',
-      page: page('two', null),
+      type: "append-success",
+      page: page("two", null),
     });
 
-    expect(finalState.breeds.map((breed) => breed.id)).toEqual(['one', 'two']);
+    expect(finalState.breeds.map((breed) => breed.id)).toEqual(["one", "two"]);
     expect(finalState.nextPage).toBeNull();
   });
 
-  it('keeps loaded breeds when a later page fails', () => {
+  it("keeps loaded breeds when a later page fails", () => {
     const loadedState = breedPaginationReducer(initialBreedPaginationState, {
-      type: 'replace-success',
-      page: page('one', 2),
+      type: "replace-success",
+      page: page("one", 2),
     });
     const failedState = breedPaginationReducer(loadedState, {
-      type: 'append-failure',
-      message: 'Network unavailable',
+      type: "append-failure",
+      message: "Network unavailable",
     });
 
     expect(failedState.breeds).toEqual(loadedState.breeds);
-    expect(failedState.paginationError).toBe('Network unavailable');
+    expect(failedState.paginationError).toBe("Network unavailable");
     expect(failedState.nextPage).toBe(2);
   });
 
-  it('clears pagination loading when refresh takes over', () => {
+  it("clears pagination loading when refresh takes over", () => {
     const appendingState = breedPaginationReducer(initialBreedPaginationState, {
-      type: 'append-start',
+      type: "append-start",
     });
     const refreshingState = breedPaginationReducer(appendingState, {
-      type: 'refresh-start',
+      type: "refresh-start",
     });
 
     expect(refreshingState.isLoadingMore).toBe(false);

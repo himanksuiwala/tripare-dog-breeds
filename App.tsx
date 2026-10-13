@@ -1,8 +1,8 @@
-import './global.css';
+import "./global.css";
 
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from "expo-status-bar";
 
-import { RootNavigation } from './src/navigation/RootNavigation';
+import { RootNavigation } from "./src/navigation/RootNavigation";
 
 export default function App() {
   return (

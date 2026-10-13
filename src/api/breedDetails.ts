@@ -1,4 +1,4 @@
-const BREEDS_ENDPOINT = 'https://dogapi.dog/api/v2/breeds';
+const BREEDS_ENDPOINT = "https://dogapi.dog/api/v2/breeds";
 
 export type Range = {
   min: number;
@@ -54,8 +54,8 @@ export type BreedDetails = {
 
 export class BreedNotFoundError extends Error {
   constructor() {
-    super('Breed not found.');
-    this.name = 'BreedNotFoundError';
+    super("Breed not found.");
+    this.name = "BreedNotFoundError";
   }
 }
 
@@ -65,11 +65,11 @@ type Fetcher = (
 ) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === "object" && value !== null;
 }
 
 function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value);
+  return typeof value === "number" && Number.isFinite(value);
 }
 
 function parseRange(value: unknown, fieldName: string): Range {
@@ -85,12 +85,16 @@ function parseRange(value: unknown, fieldName: string): Range {
 }
 
 function optionalString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+  return typeof value === "string" && value.trim().length > 0
+    ? value
+    : undefined;
 }
 
 function stringArray(value: unknown): string[] {
   return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === 'string' && item.length > 0)
+    ? value.filter(
+        (item): item is string => typeof item === "string" && item.length > 0,
+      )
     : [];
 }
 
@@ -104,21 +108,21 @@ function traitScore(traits: Record<string, unknown>, key: string): number {
 
 function parseTraits(value: unknown): BreedTraits {
   if (!isRecord(value)) {
-    throw new Error('Dog API returned invalid traits data.');
+    throw new Error("Dog API returned invalid traits data.");
   }
 
   return {
-    energy: traitScore(value, 'energy'),
-    barking: traitScore(value, 'barking'),
-    drooling: traitScore(value, 'drooling'),
-    grooming: traitScore(value, 'grooming'),
-    shedding: traitScore(value, 'shedding'),
-    trainability: traitScore(value, 'trainability'),
-    goodWithDogs: traitScore(value, 'good_with_dogs'),
-    exerciseMinutes: traitScore(value, 'exercise_minutes'),
-    apartmentFriendly: traitScore(value, 'apartment_friendly'),
-    goodWithChildren: traitScore(value, 'good_with_children'),
-    goodWithStrangers: traitScore(value, 'good_with_strangers'),
+    energy: traitScore(value, "energy"),
+    barking: traitScore(value, "barking"),
+    drooling: traitScore(value, "drooling"),
+    grooming: traitScore(value, "grooming"),
+    shedding: traitScore(value, "shedding"),
+    trainability: traitScore(value, "trainability"),
+    goodWithDogs: traitScore(value, "good_with_dogs"),
+    exerciseMinutes: traitScore(value, "exercise_minutes"),
+    apartmentFriendly: traitScore(value, "apartment_friendly"),
+    goodWithChildren: traitScore(value, "good_with_children"),
+    goodWithStrangers: traitScore(value, "good_with_strangers"),
     temperament: stringArray(value.temperament),
   };
 }
@@ -131,17 +135,23 @@ function parseImages(value: unknown): BreedImage[] {
   return value.flatMap((image) => {
     if (
       !isRecord(image) ||
-      typeof image.id !== 'string' ||
-      typeof image.thumb !== 'string' ||
-      typeof image.medium !== 'string'
+      typeof image.id !== "string" ||
+      typeof image.thumb !== "string" ||
+      typeof image.medium !== "string"
     ) {
       return [];
     }
 
     const attribution = image.attribution;
-    const author = isRecord(attribution) ? optionalString(attribution.author) : undefined;
-    const license = isRecord(attribution) ? optionalString(attribution.license) : undefined;
-    const source = isRecord(attribution) ? optionalString(attribution.source) : undefined;
+    const author = isRecord(attribution)
+      ? optionalString(attribution.author)
+      : undefined;
+    const license = isRecord(attribution)
+      ? optionalString(attribution.license)
+      : undefined;
+    const source = isRecord(attribution)
+      ? optionalString(attribution.source)
+      : undefined;
     const parsedAttribution =
       author || license || source ? { author, license, source } : null;
 
@@ -150,7 +160,7 @@ function parseImages(value: unknown): BreedImage[] {
         id: image.id,
         thumbUrl: image.thumb,
         mediumUrl: image.medium,
-        largeUrl: typeof image.large === 'string' ? image.large : image.medium,
+        largeUrl: typeof image.large === "string" ? image.large : image.medium,
         attribution: parsedAttribution,
       },
     ];
@@ -159,18 +169,18 @@ function parseImages(value: unknown): BreedImage[] {
 
 export function parseBreedDetails(value: unknown): BreedDetails {
   if (!isRecord(value) || !isRecord(value.data)) {
-    throw new Error('Dog API returned an invalid response.');
+    throw new Error("Dog API returned an invalid response.");
   }
 
   const { data } = value;
   const attributes = data.attributes;
   if (
-    typeof data.id !== 'string' ||
+    typeof data.id !== "string" ||
     !isRecord(attributes) ||
-    typeof attributes.name !== 'string' ||
-    typeof attributes.description !== 'string'
+    typeof attributes.name !== "string" ||
+    typeof attributes.description !== "string"
   ) {
-    throw new Error('Dog API returned invalid breed details.');
+    throw new Error("Dog API returned invalid breed details.");
   }
 
   const origin = isRecord(attributes.origin) ? attributes.origin : {};
@@ -179,11 +189,11 @@ export function parseBreedDetails(value: unknown): BreedDetails {
     id: data.id,
     name: attributes.name,
     description: attributes.description,
-    life: parseRange(attributes.life, 'life span'),
-    maleWeight: parseRange(attributes.male_weight, 'male weight'),
-    femaleWeight: parseRange(attributes.female_weight, 'female weight'),
-    maleHeight: parseRange(attributes.male_height, 'male height'),
-    femaleHeight: parseRange(attributes.female_height, 'female height'),
+    life: parseRange(attributes.life, "life span"),
+    maleWeight: parseRange(attributes.male_weight, "male weight"),
+    femaleWeight: parseRange(attributes.female_weight, "female weight"),
+    maleHeight: parseRange(attributes.male_height, "male height"),
+    femaleHeight: parseRange(attributes.female_height, "female height"),
     origin: {
       era: optionalString(origin.era),
       region: optionalString(origin.region),
