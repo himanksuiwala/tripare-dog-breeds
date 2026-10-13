@@ -22,10 +22,13 @@ export type BreedTraits = {
 
 export type BreedImage = {
   id: string;
+  thumbUrl: string;
   mediumUrl: string;
+  largeUrl: string;
   attribution: {
-    author: string;
-    license: string;
+    author?: string;
+    license?: string;
+    source?: string;
   } | null;
 };
 
@@ -129,23 +132,25 @@ function parseImages(value: unknown): BreedImage[] {
     if (
       !isRecord(image) ||
       typeof image.id !== 'string' ||
+      typeof image.thumb !== 'string' ||
       typeof image.medium !== 'string'
     ) {
       return [];
     }
 
     const attribution = image.attribution;
+    const author = isRecord(attribution) ? optionalString(attribution.author) : undefined;
+    const license = isRecord(attribution) ? optionalString(attribution.license) : undefined;
+    const source = isRecord(attribution) ? optionalString(attribution.source) : undefined;
     const parsedAttribution =
-      isRecord(attribution) &&
-      typeof attribution.author === 'string' &&
-      typeof attribution.license === 'string'
-        ? { author: attribution.author, license: attribution.license }
-        : null;
+      author || license || source ? { author, license, source } : null;
 
     return [
       {
         id: image.id,
+        thumbUrl: image.thumb,
         mediumUrl: image.medium,
+        largeUrl: typeof image.large === 'string' ? image.large : image.medium,
         attribution: parsedAttribution,
       },
     ];

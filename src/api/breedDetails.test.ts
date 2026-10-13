@@ -28,7 +28,19 @@ const validResponse = {
         good_with_strangers: 2,
         temperament: ['curious'],
       },
-      images: [],
+      images: [
+        {
+          id: 'image-1',
+          thumb: 'https://images.example/thumb.webp',
+          medium: 'https://images.example/medium.webp',
+          large: 'https://images.example/large.webp',
+          attribution: {
+            author: 'Example Author',
+            license: 'CC BY 2.0',
+            source: 'Wikimedia Commons',
+          },
+        },
+      ],
     },
   },
 };
@@ -44,7 +56,19 @@ describe('parseBreedDetails', () => {
       region: undefined,
     });
     expect(details.otherNames).toEqual([]);
-    expect(details.images).toEqual([]);
+    expect(details.images).toEqual([
+      {
+        id: 'image-1',
+        thumbUrl: 'https://images.example/thumb.webp',
+        mediumUrl: 'https://images.example/medium.webp',
+        largeUrl: 'https://images.example/large.webp',
+        attribution: {
+          author: 'Example Author',
+          license: 'CC BY 2.0',
+          source: 'Wikimedia Commons',
+        },
+      },
+    ]);
     expect(details.traits.exerciseMinutes).toBe(30);
   });
 

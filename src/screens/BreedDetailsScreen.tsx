@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import type { BreedDetails, BreedTraits, Range } from '../api/breedDetails';
+import type { BreedDetails, BreedImage, BreedTraits, Range } from '../api/breedDetails';
 import {
   EXERCISE_MINUTES_MAX,
   normalizeScale,
@@ -72,7 +72,7 @@ export function BreedDetailsScreen({ route }: Props) {
       >
         {selectedTab === 'overview' ? <Overview details={state.details} /> : null}
         {selectedTab === 'traits' ? <Traits traits={state.details.traits} /> : null}
-        {selectedTab === 'gallery' ? <GalleryPlaceholder /> : null}
+        {selectedTab === 'gallery' ? <GalleryGrid details={state.details} /> : null}
       </ScrollView>
     </View>
   );
@@ -181,7 +181,9 @@ function Hero({ details }: { details: BreedDetails }) {
       )}
       {hero?.attribution && !showFallback ? (
         <Text className="px-4 py-2 text-xs text-doggo-muted">
-          Photo: {hero.attribution.author} · {hero.attribution.license}
+          {[hero.attribution.author, hero.attribution.license, hero.attribution.source]
+            .filter(Boolean)
+            .join(' · ')}
         </Text>
       ) : null}
     </View>
@@ -365,19 +367,81 @@ function ExerciseCard({ minutes }: { minutes: number }) {
   );
 }
 
-function GalleryPlaceholder() {
-  return (
-    <View className="items-center justify-center px-8 py-24">
-      <View className="h-20 w-20 items-center justify-center rounded-3xl bg-doggo-accent-soft">
-        <Text className="text-3xl text-doggo-accent">▧</Text>
+function GalleryGrid({ details }: { details: BreedDetails }) {
+  const navigation = useNavigation();
+
+  if (details.images.length === 0) {
+    return (
+      <View className="items-center justify-center px-8 py-24">
+        <View className="h-20 w-20 items-center justify-center rounded-3xl bg-doggo-accent-soft">
+          <Text className="text-3xl text-doggo-accent">▧</Text>
+        </View>
+        <Text className="mt-5 text-center text-2xl font-black text-doggo-ink">
+          No photos available
+        </Text>
+        <Text className="mt-2 text-center text-base leading-6 text-doggo-muted">
+          This breed does not have gallery images yet.
+        </Text>
       </View>
-      <Text className="mt-5 text-center text-2xl font-black text-doggo-ink">
-        Gallery coming soon
-      </Text>
-      <Text className="mt-2 text-center text-base leading-6 text-doggo-muted">
-        More photos of this breed will live here.
-      </Text>
+    );
+  }
+
+  return (
+    <View className="flex-row flex-wrap gap-2.5">
+      {details.images.map((image, index) => (
+        <GalleryThumbnail
+          breedName={details.name}
+          image={image}
+          imageNumber={index + 1}
+          key={image.id}
+          onPress={() =>
+            navigation.navigate('BreedGallery', {
+              breedId: details.id,
+              imageId: image.id,
+            })
+          }
+        />
+      ))}
     </View>
+  );
+}
+
+function GalleryThumbnail({
+  breedName,
+  image,
+  imageNumber,
+  onPress,
+}: {
+  breedName: string;
+  image: BreedImage;
+  imageNumber: number;
+  onPress: () => void;
+}) {
+  const [hasFailed, setHasFailed] = useState(false);
+
+  return (
+    <Pressable
+      accessibilityLabel={`Open ${breedName} image ${imageNumber}`}
+      accessibilityRole="button"
+      className="aspect-square w-[31%] overflow-hidden rounded-2xl bg-doggo-accent-soft active:opacity-70"
+      onPress={onPress}
+    >
+      {hasFailed ? (
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-3xl font-black text-doggo-accent">
+            {breedName.charAt(0).toUpperCase()}
+          </Text>
+        </View>
+      ) : (
+        <Image
+          accessibilityIgnoresInvertColors
+          className="h-full w-full"
+          onError={() => setHasFailed(true)}
+          resizeMode="cover"
+          source={{ uri: image.thumbUrl }}
+        />
+      )}
+    </Pressable>
   );
 }
 
