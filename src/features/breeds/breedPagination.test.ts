@@ -14,6 +14,12 @@ function page(id: string, nextPage: number | null): BreedPage {
         lifeMax: 12,
         hypoallergenic: false,
         thumbnailUrl: null,
+        otherNames: [],
+        groupId: null,
+        maximumWeight: null,
+        coatLength: null,
+        coatType: null,
+        socialTraits: null,
       },
     ],
     pagination: {

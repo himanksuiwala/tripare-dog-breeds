@@ -9,7 +9,19 @@ export type Breed = {
   lifeMax: number;
   hypoallergenic: boolean;
   thumbnailUrl: string | null;
+  otherNames: string[];
+  groupId: string | null;
+  maximumWeight: number | null;
+  coatLength: string | null;
+  coatType: string | null;
+  socialTraits: {
+    goodWithChildren: number;
+    goodWithDogs: number;
+    goodWithStrangers: number;
+  } | null;
 };
+
+export type BreedGroup = { id: string; name: string };
 
 export type BreedPage = {
   breeds: Breed[];
@@ -32,6 +44,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function paginationNumber(value: unknown): number | null {
+  if (isFiniteNumber(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 function parseBreed(value: unknown): Breed | null {
@@ -65,6 +86,20 @@ function parseBreed(value: unknown): Breed | null {
     }
   }
 
+  const maleWeight = isRecord(attributes.male_weight) ? attributes.male_weight.max : null;
+  const femaleWeight = isRecord(attributes.female_weight) ? attributes.female_weight.max : null;
+  const weights = [maleWeight, femaleWeight].filter(isFiniteNumber);
+  const coat = isRecord(attributes.coat) ? attributes.coat : {};
+  const traits = isRecord(attributes.traits) ? attributes.traits : null;
+  const relationships = isRecord(value.relationships) ? value.relationships : {};
+  const group = isRecord(relationships.group) ? relationships.group : {};
+  const groupData = isRecord(group.data) ? group.data : {};
+  const hasSocialTraits =
+    traits !== null &&
+    isFiniteNumber(traits.good_with_children) &&
+    isFiniteNumber(traits.good_with_dogs) &&
+    isFiniteNumber(traits.good_with_strangers);
+
   return {
     id: value.id,
     name: attributes.name,
@@ -72,7 +107,47 @@ function parseBreed(value: unknown): Breed | null {
     lifeMax: life.max,
     hypoallergenic: attributes.hypoallergenic,
     thumbnailUrl,
+    otherNames: Array.isArray(attributes.other_names)
+      ? attributes.other_names.filter((name): name is string => typeof name === 'string')
+      : [],
+    groupId: typeof groupData.id === 'string' ? groupData.id : null,
+    maximumWeight: weights.length > 0 ? Math.max(...weights) : null,
+    coatLength: typeof coat.length === 'string' ? coat.length : null,
+    coatType: typeof coat.type === 'string' ? coat.type : null,
+    socialTraits: hasSocialTraits
+      ? {
+          goodWithChildren: traits.good_with_children as number,
+          goodWithDogs: traits.good_with_dogs as number,
+          goodWithStrangers: traits.good_with_strangers as number,
+        }
+      : null,
   };
+}
+
+export function parseBreedGroups(value: unknown): BreedGroup[] {
+  if (!isRecord(value) || !Array.isArray(value.data)) {
+    throw new Error('Dog API returned invalid group data.');
+  }
+
+  return value.data.flatMap((item) => {
+    if (!isRecord(item) || typeof item.id !== 'string' || !isRecord(item.attributes)) {
+      return [];
+    }
+    return typeof item.attributes.name === 'string'
+      ? [{ id: item.id, name: item.attributes.name }]
+      : [];
+  });
+}
+
+export async function fetchBreedGroups(
+  signal?: AbortSignal,
+  fetcher: Fetcher = fetch,
+): Promise<BreedGroup[]> {
+  const response = await fetcher('https://dogapi.dog/api/v2/groups?page[size]=1000', { signal });
+  if (!response.ok) {
+    throw new Error(`Dog API group request failed with status ${response.status}.`);
+  }
+  return parseBreedGroups(await response.json());
 }
 
 export function parseBreedPage(value: unknown): BreedPage {
@@ -81,17 +156,15 @@ export function parseBreedPage(value: unknown): BreedPage {
   }
 
   const pagination = value.meta.pagination;
-  if (
-    !isRecord(pagination) ||
-    !isFiniteNumber(pagination.current) ||
-    !isFiniteNumber(pagination.last) ||
-    !isFiniteNumber(pagination.records) ||
-    !(
-      pagination.next === null ||
-      pagination.next === undefined ||
-      isFiniteNumber(pagination.next)
-    )
-  ) {
+  if (!isRecord(pagination)) {
+    throw new Error('Dog API returned invalid pagination data.');
+  }
+  const currentPage = paginationNumber(pagination.current);
+  const totalRecords = paginationNumber(pagination.records);
+  const nextPage = paginationNumber(pagination.next);
+  const explicitLastPage = paginationNumber(pagination.last);
+  const lastPage = explicitLastPage ?? (nextPage === null ? currentPage : null);
+  if (currentPage === null || lastPage === null || totalRecords === null) {
     throw new Error('Dog API returned invalid pagination data.');
   }
 
@@ -103,10 +176,10 @@ export function parseBreedPage(value: unknown): BreedPage {
   return {
     breeds,
     pagination: {
-      currentPage: pagination.current,
-      nextPage: isFiniteNumber(pagination.next) ? pagination.next : null,
-      lastPage: pagination.last,
-      totalRecords: pagination.records,
+      currentPage,
+      nextPage,
+      lastPage,
+      totalRecords,
     },
   };
 }

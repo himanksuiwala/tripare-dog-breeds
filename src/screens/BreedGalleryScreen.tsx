@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  Modal,
   Pressable,
   Text,
   useWindowDimensions,
@@ -16,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { BreedImage } from '../api/breedDetails';
+import { BottomSheetModal } from '../components/BottomSheetModal';
 import { resolveInitialImageIndex } from '../features/breeds/gallery';
 import { useBreedDetails } from '../features/breeds/useBreedDetails';
 
@@ -215,31 +215,8 @@ function AttributionSheet({
     : [];
 
   return (
-    <Modal
-      animationType="slide"
-      onRequestClose={onClose}
-      presentationStyle="overFullScreen"
-      transparent
-      visible={isVisible}
-    >
-      <View className="flex-1 justify-end">
-        <Pressable
-          accessibilityLabel="Close image information"
-          className="absolute inset-0 bg-black/60"
-          onPress={onClose}
-        />
-        <SafeAreaView className="rounded-t-3xl bg-white px-6 pb-3 pt-5" edges={['bottom']}>
-          <View className="mb-5 flex-row items-center justify-between">
-            <Text className="text-xl font-black text-doggo-ink">Image information</Text>
-            <Pressable
-              accessibilityLabel="Close image information"
-              accessibilityRole="button"
-              className="h-10 w-10 items-center justify-center rounded-full bg-doggo-canvas active:opacity-70"
-              onPress={onClose}
-            >
-              <Text className="text-xl text-doggo-ink">×</Text>
-            </Pressable>
-          </View>
+    <BottomSheetModal isVisible={isVisible} onClose={onClose} title="Image information">
+      <View className="px-6 pb-4">
           {attributionRows.length > 0 ? (
             <View className="rounded-2xl bg-doggo-canvas px-4">
               {attributionRows.map((row, index) => (
@@ -254,9 +231,8 @@ function AttributionSheet({
               No attribution information is available for this image.
             </Text>
           )}
-        </SafeAreaView>
       </View>
-    </Modal>
+    </BottomSheetModal>
   );
 }
 

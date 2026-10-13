@@ -28,6 +28,12 @@ describe('parseBreedPage', () => {
           lifeMax: 16,
           hypoallergenic: true,
           thumbnailUrl: 'https://images.example/affenpinscher.jpg',
+          otherNames: [],
+          groupId: null,
+          maximumWeight: null,
+          coatLength: null,
+          coatType: null,
+          socialTraits: null,
         },
       ],
       pagination: {
@@ -52,6 +58,33 @@ describe('parseBreedPage', () => {
     expect(() =>
       parseBreedPage({ data: [], meta: { pagination: { current: 'one' } } }),
     ).toThrow('invalid pagination');
+  });
+
+  it('accepts a final page regardless of its optional next-page sentinel', () => {
+    const finalPage = {
+      ...validResponse,
+      meta: { pagination: { current: 6, prev: 5, records: 283 } },
+    };
+
+    expect(parseBreedPage(finalPage).pagination).toEqual({
+      currentPage: 6,
+      nextPage: null,
+      lastPage: 6,
+      totalRecords: 283,
+    });
+  });
+
+  it('normalizes numeric pagination strings returned by the native request path', () => {
+    const page = {
+      ...validResponse,
+      meta: { pagination: { current: '6', last: '6', records: '283' } },
+    };
+    expect(parseBreedPage(page).pagination).toEqual({
+      currentPage: 6,
+      nextPage: null,
+      lastPage: 6,
+      totalRecords: 283,
+    });
   });
 });
 
