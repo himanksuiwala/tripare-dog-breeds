@@ -39,3 +39,14 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## Styling with NativeWind
+
+- This project uses NativeWind v4 with Tailwind CSS v3. Before changing NativeWind setup or relying on an unfamiliar utility, fetch https://www.nativewind.dev/llms.txt and follow the linked v4 documentation; do not mix in v5 release-candidate instructions.
+- Prefer `className` utilities on React Native core components over new `StyleSheet.create` declarations. Keep layouts mobile-first and add `ios:`, `android:`, `web:`, or `native:` variants only where platform behavior differs.
+- Keep all files containing utility classes covered by the `content` globs in `tailwind.config.js`. Write complete, statically detectable class strings; do not construct utility names such as ``bg-${color}-500``.
+- Define reusable design tokens in `tailwind.config.js` under `theme.extend` instead of scattering arbitrary values through components.
+- React Native layout defaults differ from the web. Set direction explicitly when needed (`flex-row` or `flex-col`) and use `flex-1` intentionally.
+- For conditional or dark-mode styling, declare both states, for example `text-slate-900 dark:text-white`, so native style updates remain predictable.
+- Third-party components may not accept `className`. Prefer their documented style props; use NativeWind `remapProps` or `cssInterop` in a shared adapter outside route files when interoperability is needed.
+- Import `global.css` once at the application entry/root. After changing `babel.config.js`, `metro.config.js`, `tailwind.config.js`, or `global.css`, restart Metro with a cleared cache: `npx expo start --clear`.
