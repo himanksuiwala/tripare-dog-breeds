@@ -25,9 +25,10 @@ Run lint and typecheck before declaring any task done.
 
 ## Navigation & Routing
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+- Use React Navigation 7 for navigation. Before changing navigation setup or using an unfamiliar API, fetch https://reactnavigation.org/llms.txt and follow its linked 7.x documentation; do not use upcoming 8.x instructions.
+- Prefer the static API and native stack for straightforward mobile flows. Keep the root navigator in `src/navigation/` and screen components in `src/screens/`.
+- Keep route names and parameters type-safe. Do not cast navigation values or use `any` to bypass invalid routes or params.
+- Install native navigation dependencies with `npx expo install` so Expo selects SDK-compatible versions. After changing native dependencies, update iOS pods and rebuild the development app.
 
 ## TypeScript
 
