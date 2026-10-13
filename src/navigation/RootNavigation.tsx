@@ -1,19 +1,25 @@
 import { createStaticNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { DetailsScreen } from '../screens/DetailsScreen';
-import { HomeScreen } from '../screens/HomeScreen';
+import { BreedDetailsScreen } from '../screens/BreedDetailsScreen';
+import { BreedListScreen } from '../screens/BreedListScreen';
 
 const RootStack = createNativeStackNavigator({
-  initialRouteName: 'Home',
+  initialRouteName: 'Breeds',
   screens: {
-    Home: {
-      screen: HomeScreen,
-      options: { title: 'Doggo' },
+    Breeds: {
+      screen: BreedListScreen,
+      options: { headerShown: false },
     },
-    Details: {
-      screen: DetailsScreen,
-      options: { title: 'Details' },
+    BreedDetails: {
+      screen: BreedDetailsScreen,
+      options: {
+        title: 'Breed details',
+        headerBackTitle: 'Breeds',
+        headerStyle: { backgroundColor: '#F7F3EC' },
+        headerShadowVisible: false,
+        headerTintColor: '#28231F',
+      },
     },
   },
 });
