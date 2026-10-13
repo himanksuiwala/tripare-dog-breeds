@@ -1,8 +1,8 @@
 import { useNavigation } from "@react-navigation/native";
+import { Image } from "expo-image";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Image,
   Keyboard,
   Pressable,
   RefreshControl,
@@ -26,40 +26,61 @@ import {
   type SizeBand,
 } from "../features/breeds/breedFilters";
 import { buildBreedSections } from "../features/breeds/breedSections";
+import type { BreedSection } from "../features/breeds/breedSections";
 import { useBreedCatalogue } from "../features/breeds/useBreedCatalogue";
 
-function BreedRow({ breed }: { breed: Breed }) {
-  const navigation = useNavigation();
+const thumbnailStyle = { width: 64, height: 64, borderRadius: 16 } as const;
+
+type BreedRowProps = Pick<
+  Breed,
+  "id" | "name" | "lifeMin" | "lifeMax" | "hypoallergenic" | "thumbnailUrl"
+> & {
+  onPress: (breedId: string) => void;
+};
+
+const BreedRow = memo(function BreedRow({
+  id,
+  name,
+  lifeMin,
+  lifeMax,
+  hypoallergenic,
+  thumbnailUrl,
+  onPress,
+}: BreedRowProps) {
   const [failed, setFailed] = useState(false);
   return (
     <Pressable
-      accessibilityLabel={`View details for ${breed.name}`}
+      accessibilityLabel={`View details for ${name}`}
       accessibilityRole="button"
       className="mb-3 flex-row items-center rounded-3xl border border-doggo-border bg-white p-3 active:opacity-70"
-      onPress={() => navigation.navigate("BreedDetails", { breedId: breed.id })}
+      onPress={() => onPress(id)}
     >
-      {breed.thumbnailUrl && !failed ? (
+      {thumbnailUrl && !failed ? (
         <Image
-          className="h-16 w-16 rounded-2xl"
+          cachePolicy="disk"
+          contentFit="cover"
+          enforceEarlyResizing
           onError={() => setFailed(true)}
-          source={{ uri: breed.thumbnailUrl }}
+          recyclingKey={id}
+          source={thumbnailUrl}
+          style={thumbnailStyle}
         />
       ) : (
         <View className="h-16 w-16 items-center justify-center rounded-2xl bg-doggo-accent-soft">
           <Text className="text-xl font-bold text-doggo-accent">
-            {breed.name.charAt(0)}
+            {name.charAt(0)}
           </Text>
         </View>
       )}
       <View className="ml-4 min-w-0 flex-1">
         <Text className="text-lg font-bold text-doggo-ink" numberOfLines={1}>
-          {breed.name}
+          {name}
         </Text>
         <Text className="mt-1 text-sm text-doggo-muted">
-          {breed.lifeMin}–{breed.lifeMax} years
+          {lifeMin}–{lifeMax} years
         </Text>
       </View>
-      {breed.hypoallergenic ? (
+      {hypoallergenic ? (
         <View className="ml-2 rounded-full bg-doggo-success-soft px-2.5 py-1">
           <Text className="text-xs font-semibold text-doggo-success">
             Hypoallergenic
@@ -68,10 +89,25 @@ function BreedRow({ breed }: { breed: Breed }) {
       ) : null}
     </Pressable>
   );
+});
+
+function breedKeyExtractor(breed: Breed): string {
+  return breed.id;
+}
+
+function renderBreedSectionHeader({ section }: { section: BreedSection }) {
+  return (
+    <View className="bg-doggo-canvas pb-3 pt-4">
+      <Text className="text-sm font-black uppercase tracking-widest text-doggo-accent">
+        {section.title} · {section.data.length}
+      </Text>
+    </View>
+  );
 }
 
 export function BreedListScreen() {
-  const { state, retry, refresh } = useBreedCatalogue();
+  const navigation = useNavigation();
+  const { state, retry, refresh, retryBackground } = useBreedCatalogue();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filters, setFilters] = useState<BreedFilters>(emptyBreedFilters);
@@ -90,7 +126,27 @@ export function BreedListScreen() {
     [results, state.groups],
   );
   const activeCount = countActiveFilters(filters);
-  const openFilters = () => {
+  const controlsDisabled =
+    state.isCompletingCatalogue && !state.isCatalogueIncomplete;
+  const openBreed = useCallback(
+    (breedId: string) => navigation.navigate("BreedDetails", { breedId }),
+    [navigation],
+  );
+  const renderBreed = useCallback(
+    ({ item }: { item: Breed }) => (
+      <BreedRow
+        id={item.id}
+        hypoallergenic={item.hypoallergenic}
+        lifeMax={item.lifeMax}
+        lifeMin={item.lifeMin}
+        name={item.name}
+        onPress={openBreed}
+        thumbnailUrl={item.thumbnailUrl}
+      />
+    ),
+    [openBreed],
+  );
+  const openFilters = useCallback(() => {
     setDraft({
       ...filters,
       groupIds: [...filters.groupIds],
@@ -98,7 +154,9 @@ export function BreedListScreen() {
       coats: [...filters.coats],
     });
     setSheetOpen(true);
-  };
+  }, [filters]);
+  const clearFilters = useCallback(() => setFilters(emptyBreedFilters), []);
+  const clearSearch = useCallback(() => setSearch(""), []);
 
   if (state.isLoading)
     return (
@@ -147,21 +205,41 @@ export function BreedListScreen() {
       <Header
         activeCount={activeCount}
         count={displayedCount}
+        controlsDisabled={controlsDisabled}
+        isCatalogueIncomplete={state.isCatalogueIncomplete}
+        isCompletingCatalogue={state.isCompletingCatalogue}
+        loadedCount={state.breeds.length}
         onFilter={openFilters}
         search={search}
         setSearch={setSearch}
+        totalCount={state.totalRecords}
       />
       <SectionList
         contentContainerClassName="flex-grow px-5 pb-8"
+        initialNumToRender={8}
         keyboardDismissMode="on-drag"
-        keyExtractor={(breed) => breed.id}
+        keyExtractor={breedKeyExtractor}
         ListEmptyComponent={
           <EmptyResults
             hasFilters={activeCount > 0}
             hasSearch={debouncedSearch.length > 0}
-            onClearFilters={() => setFilters(emptyBreedFilters)}
-            onClearSearch={() => setSearch("")}
+            onClearFilters={clearFilters}
+            onClearSearch={clearSearch}
           />
+        }
+        maxToRenderPerBatch={6}
+        ListHeaderComponent={
+          state.errorMessage ? (
+            <CatalogueNotice
+              isLoading={state.isCompletingCatalogue || state.isRefreshing}
+              message={
+                state.isCatalogueIncomplete
+                  ? "Some breeds could not be loaded. Search and filters use the available catalogue."
+                  : "The catalogue could not be refreshed. Your previous results are still available."
+              }
+              onRetry={state.isCatalogueIncomplete ? retryBackground : refresh}
+            />
+          ) : null
         }
         refreshControl={
           <RefreshControl
@@ -170,17 +248,13 @@ export function BreedListScreen() {
             tintColor="#B65E3C"
           />
         }
-        renderItem={({ item }) => <BreedRow breed={item} />}
-        renderSectionHeader={({ section }) => (
-          <View className="bg-doggo-canvas pb-3 pt-4">
-            <Text className="text-sm font-black uppercase tracking-widest text-doggo-accent">
-              {section.title} · {section.data.length}
-            </Text>
-          </View>
-        )}
+        renderItem={renderBreed}
+        renderSectionHeader={renderBreedSectionHeader}
         sections={sections}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled
+        updateCellsBatchingPeriod={50}
+        windowSize={7}
       />
       <FilterSheet
         breeds={state.breeds}
@@ -203,16 +277,34 @@ export function BreedListScreen() {
 function Header({
   activeCount,
   count,
+  controlsDisabled,
+  isCatalogueIncomplete,
+  isCompletingCatalogue,
+  loadedCount,
   onFilter,
   search,
   setSearch,
+  totalCount,
 }: {
   activeCount: number;
   count: number;
+  controlsDisabled: boolean;
+  isCatalogueIncomplete: boolean;
+  isCompletingCatalogue: boolean;
+  loadedCount: number;
   onFilter: () => void;
   search: string;
   setSearch: (value: string) => void;
+  totalCount: number | null;
 }) {
+  const hasQuery = search.trim().length > 0 || activeCount > 0;
+  const countLabel = isCatalogueIncomplete
+    ? hasQuery
+      ? `${count} results from ${loadedCount} loaded breeds`
+      : `${loadedCount} of ${totalCount ?? loadedCount} breeds loaded`
+    : controlsDisabled
+      ? `${loadedCount} of ${totalCount ?? loadedCount} breeds loaded`
+      : `${count} breeds found`;
   return (
     <View className="px-5 pb-5 pt-6">
       <Text className="text-sm font-semibold uppercase tracking-widest text-doggo-accent">
@@ -221,13 +313,28 @@ function Header({
       <Text className="mt-1 text-4xl font-black text-doggo-ink">
         Find your breed
       </Text>
-      <Text className="mt-2 text-base text-doggo-muted">
-        {count} breeds found
-      </Text>
+      <Text className="mt-2 text-base text-doggo-muted">{countLabel}</Text>
+      {controlsDisabled ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          className="mt-1 text-sm text-doggo-muted"
+        >
+          Loading the full catalogue… Search and filters will be available
+          shortly.
+        </Text>
+      ) : isCatalogueIncomplete && isCompletingCatalogue ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          className="mt-1 text-sm text-doggo-muted"
+        >
+          Retrying the remaining breeds…
+        </Text>
+      ) : null}
       <View className="mt-5 flex-row items-center">
         <View className="mr-3 h-14 flex-1 flex-row items-center rounded-2xl border border-doggo-border bg-white pl-4 pr-1">
           <TextInput
             accessibilityLabel="Search breeds"
+            accessibilityState={{ disabled: controlsDisabled }}
             className="h-full flex-1 py-0 text-lg leading-6 text-doggo-ink"
             onChangeText={setSearch}
             onSubmitEditing={Keyboard.dismiss}
@@ -236,6 +343,7 @@ function Header({
             returnKeyType="search"
             textAlignVertical="center"
             value={search}
+            editable={!controlsDisabled}
           />
           {search ? (
             <Pressable
@@ -253,7 +361,13 @@ function Header({
         </View>
         <Pressable
           accessibilityRole="button"
-          className="h-14 flex-row items-center justify-center rounded-2xl border border-doggo-border bg-white px-5 active:opacity-70"
+          accessibilityState={{ disabled: controlsDisabled }}
+          className={
+            controlsDisabled
+              ? "h-14 flex-row items-center justify-center rounded-2xl border border-doggo-border bg-white px-5 opacity-50"
+              : "h-14 flex-row items-center justify-center rounded-2xl border border-doggo-border bg-white px-5 active:opacity-70"
+          }
+          disabled={controlsDisabled}
           onPress={onFilter}
         >
           <Text className="text-base font-bold text-doggo-ink">Filter</Text>
@@ -266,6 +380,32 @@ function Header({
           ) : null}
         </Pressable>
       </View>
+    </View>
+  );
+}
+
+function CatalogueNotice({
+  isLoading,
+  message,
+  onRetry,
+}: {
+  isLoading: boolean;
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <View className="mt-4 flex-row items-center rounded-2xl bg-doggo-accent-soft px-4 py-3">
+      <Text className="mr-3 flex-1 text-sm text-doggo-ink">{message}</Text>
+      <Pressable
+        accessibilityRole="button"
+        className="rounded-full bg-white px-4 py-2 active:opacity-70"
+        disabled={isLoading}
+        onPress={onRetry}
+      >
+        <Text className="font-bold text-doggo-accent">
+          {isLoading ? "Retrying…" : "Retry"}
+        </Text>
+      </Pressable>
     </View>
   );
 }

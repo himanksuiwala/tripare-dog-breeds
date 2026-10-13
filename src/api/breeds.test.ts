@@ -54,6 +54,29 @@ describe("parseBreedPage", () => {
     expect(parseBreedPage(response).breeds).toHaveLength(1);
   });
 
+  it("uses the first non-empty thumbnail across all image items", () => {
+    const response = {
+      ...validResponse,
+      data: [
+        {
+          ...validResponse.data[0],
+          attributes: {
+            ...validResponse.data[0].attributes,
+            images: [
+              { thumb: "" },
+              { medium: "https://images.example/medium.jpg" },
+              { thumb: "https://images.example/fallback-thumb.jpg" },
+            ],
+          },
+        },
+      ],
+    };
+
+    expect(parseBreedPage(response).breeds[0]?.thumbnailUrl).toBe(
+      "https://images.example/fallback-thumb.jpg",
+    );
+  });
+
   it("rejects malformed pagination metadata", () => {
     expect(() =>
       parseBreedPage({ data: [], meta: { pagination: { current: "one" } } }),

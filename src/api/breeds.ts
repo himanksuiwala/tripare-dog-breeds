@@ -78,11 +78,14 @@ function parseBreed(value: unknown): Breed | null {
 
   let thumbnailUrl: string | null = null;
   if (Array.isArray(attributes.images)) {
-    const firstImage = attributes.images.find(
-      (image): image is Record<string, unknown> => isRecord(image),
+    const thumbnailImage = attributes.images.find(
+      (image): image is Record<string, unknown> =>
+        isRecord(image) &&
+        typeof image.thumb === "string" &&
+        image.thumb.trim().length > 0,
     );
-    if (firstImage && typeof firstImage.thumb === "string") {
-      thumbnailUrl = firstImage.thumb;
+    if (thumbnailImage && typeof thumbnailImage.thumb === "string") {
+      thumbnailUrl = thumbnailImage.thumb.trim();
     }
   }
 
