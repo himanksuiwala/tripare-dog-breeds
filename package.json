@@ -1,7 +1,7 @@
 {
   "name": "doggo",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.ts",
   "dependencies": {
     "expo": "~56.0.23",
     "expo-status-bar": "~56.0.4",
@@ -21,12 +21,18 @@
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "lint": "expo lint"
   },
   "private": true,
   "devDependencies": {
+    "@types/react": "~19.2.14",
     "babel-preset-expo": "~56.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~56.0.4",
     "prettier-plugin-tailwindcss": "^0.5.11",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "typescript": "~6.0.3"
   }
 }

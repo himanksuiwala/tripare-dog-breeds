@@ -29,6 +29,14 @@ Run lint and typecheck before declaring any task done.
 - Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
 - Docs: https://docs.expo.dev/router/introduction.md
 
+## TypeScript
+
+- Application source is TypeScript with strict checking enabled. Use `.tsx` for files containing JSX and `.ts` otherwise; do not add new `.js` application source files.
+- Keep TypeScript strict mode enabled.
+- Do not use `any`. Use `unknown` and narrow it with type guards before accessing or passing the value.
+- Keep Node-loaded tooling configuration files such as `babel.config.js`, `metro.config.js`, and `tailwind.config.js` in JavaScript unless their loader setup is intentionally migrated too.
+- Run `npm run typecheck` after source changes.
+
 ## Building with EAS
 
 Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
