@@ -2,12 +2,12 @@ import { useNavigation } from "@react-navigation/native";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
-  FlatList,
   Image,
   Keyboard,
   Pressable,
   RefreshControl,
   ScrollView,
+  SectionList,
   Text,
   TextInput,
   View,
@@ -25,6 +25,7 @@ import {
   type HypoallergenicFilter,
   type SizeBand,
 } from "../features/breeds/breedFilters";
+import { buildBreedSections } from "../features/breeds/breedSections";
 import { useBreedCatalogue } from "../features/breeds/useBreedCatalogue";
 
 function BreedRow({ breed }: { breed: Breed }) {
@@ -83,6 +84,10 @@ export function BreedListScreen() {
   const results = useMemo(
     () => filterBreeds(state.breeds, debouncedSearch, filters),
     [debouncedSearch, filters, state.breeds],
+  );
+  const sections = useMemo(
+    () => buildBreedSections(results, state.groups),
+    [results, state.groups],
   );
   const activeCount = countActiveFilters(filters);
   const openFilters = () => {
@@ -146,9 +151,8 @@ export function BreedListScreen() {
         search={search}
         setSearch={setSearch}
       />
-      <FlatList
+      <SectionList
         contentContainerClassName="flex-grow px-5 pb-8"
-        data={results}
         keyboardDismissMode="on-drag"
         keyExtractor={(breed) => breed.id}
         ListEmptyComponent={
@@ -167,7 +171,16 @@ export function BreedListScreen() {
           />
         }
         renderItem={({ item }) => <BreedRow breed={item} />}
+        renderSectionHeader={({ section }) => (
+          <View className="bg-doggo-canvas pb-3 pt-4">
+            <Text className="text-sm font-black uppercase tracking-widest text-doggo-accent">
+              {section.title} · {section.data.length}
+            </Text>
+          </View>
+        )}
+        sections={sections}
         showsVerticalScrollIndicator={false}
+        stickySectionHeadersEnabled
       />
       <FilterSheet
         breeds={state.breeds}
