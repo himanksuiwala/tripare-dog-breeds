@@ -25,6 +25,7 @@ import {
   type HypoallergenicFilter,
   type SizeBand,
 } from "../features/breeds/breedFilters";
+import { formatLastSynced } from "../features/breeds/catalogueFreshness";
 import { buildBreedSections } from "../features/breeds/breedSections";
 import type { BreedSection } from "../features/breeds/breedSections";
 import { useBreedCatalogue } from "../features/breeds/useBreedCatalogue";
@@ -113,10 +114,19 @@ export function BreedListScreen() {
   const [filters, setFilters] = useState<BreedFilters>(emptyBreedFilters);
   const [draft, setDraft] = useState<BreedFilters>(emptyBreedFilters);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [freshnessClock, setFreshnessClock] = useState(0);
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
   }, [search]);
+  useEffect(() => {
+    const initialTimer = setTimeout(() => setFreshnessClock(Date.now()), 0);
+    const timer = setInterval(() => setFreshnessClock(Date.now()), 60_000);
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(timer);
+    };
+  }, []);
   const results = useMemo(
     () => filterBreeds(state.breeds, debouncedSearch, filters),
     [debouncedSearch, filters, state.breeds],
@@ -208,6 +218,12 @@ export function BreedListScreen() {
         controlsDisabled={controlsDisabled}
         isCatalogueIncomplete={state.isCatalogueIncomplete}
         isCompletingCatalogue={state.isCompletingCatalogue}
+        isOffline={state.isOffline}
+        isRefreshing={state.isRefreshing}
+        lastSyncedLabel={formatLastSynced(
+          state.lastSuccessfulSyncAt,
+          freshnessClock,
+        )}
         loadedCount={state.breeds.length}
         onFilter={openFilters}
         search={search}
@@ -235,7 +251,9 @@ export function BreedListScreen() {
               message={
                 state.isCatalogueIncomplete
                   ? "Some breeds could not be loaded. Search and filters use the available catalogue."
-                  : "The catalogue could not be refreshed. Your previous results are still available."
+                  : state.isOffline
+                    ? `You’re offline. ${formatLastSynced(state.lastSuccessfulSyncAt, freshnessClock) ?? "Showing saved data."}`
+                    : "The catalogue could not be refreshed. Your previous results are still available."
               }
               onRetry={state.isCatalogueIncomplete ? retryBackground : refresh}
             />
@@ -280,6 +298,9 @@ function Header({
   controlsDisabled,
   isCatalogueIncomplete,
   isCompletingCatalogue,
+  isOffline,
+  isRefreshing,
+  lastSyncedLabel,
   loadedCount,
   onFilter,
   search,
@@ -291,6 +312,9 @@ function Header({
   controlsDisabled: boolean;
   isCatalogueIncomplete: boolean;
   isCompletingCatalogue: boolean;
+  isOffline: boolean;
+  isRefreshing: boolean;
+  lastSyncedLabel: string | null;
   loadedCount: number;
   onFilter: () => void;
   search: string;
@@ -314,6 +338,18 @@ function Header({
         Find your breed
       </Text>
       <Text className="mt-2 text-base text-doggo-muted">{countLabel}</Text>
+      {lastSyncedLabel ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          className="mt-1 text-sm font-semibold text-doggo-muted"
+        >
+          {isRefreshing
+            ? "Updating… Showing saved data"
+            : isOffline
+              ? `Offline · ${lastSyncedLabel}`
+              : lastSyncedLabel}
+        </Text>
+      ) : null}
       {controlsDisabled ? (
         <Text
           accessibilityLiveRegion="polite"

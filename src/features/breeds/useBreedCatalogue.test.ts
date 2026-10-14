@@ -1,5 +1,8 @@
 import type { Breed, BreedPage } from "../../api/breeds";
-import { fetchBreedPageWithLoader, mergeBreedPages } from "./useBreedCatalogue";
+import {
+  fetchBreedPageWithLoader,
+  mergeBreedPages,
+} from "./useBreedCatalogueHelpers";
 
 function breed(id: string): Breed {
   return {

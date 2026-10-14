@@ -5,6 +5,10 @@ import {
   fetchBreedDetails,
   type BreedDetails,
 } from "../../api/breedDetails";
+import {
+  readCachedBreedDetails,
+  upsertCachedBreedDetails,
+} from "../../data/catalogueDatabase";
 
 type BreedDetailsState =
   | { status: "loading"; breedId: string }
@@ -22,12 +26,21 @@ export function useBreedDetails(breedId: string) {
   useEffect(() => {
     const controller = new AbortController();
 
-    void fetchBreedDetails(breedId, controller.signal)
-      .then((details) => setState({ status: "success", breedId, details }))
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) {
+    void readCachedBreedDetails(breedId)
+      .then(async (cached) => {
+        if (controller.signal.aborted) return;
+        if (cached) {
+          setState({ status: "success", breedId, details: cached });
           return;
         }
+        const details = await fetchBreedDetails(breedId, controller.signal);
+        await upsertCachedBreedDetails(details);
+        if (!controller.signal.aborted) {
+          setState({ status: "success", breedId, details });
+        }
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
         setState({
           status: error instanceof BreedNotFoundError ? "not-found" : "error",
           breedId,

@@ -1,3 +1,5 @@
+import { parseBreedDetailsRecord, type BreedDetails } from "./breedDetails";
+
 const BREEDS_ENDPOINT = "https://dogapi.dog/api/v2/breeds";
 
 export const BREEDS_PAGE_SIZE = 48;
@@ -25,6 +27,7 @@ export type BreedGroup = { id: string; name: string };
 
 export type BreedPage = {
   breeds: Breed[];
+  details?: BreedDetails[];
   pagination: {
     currentPage: number;
     nextPage: number | null;
@@ -192,9 +195,17 @@ export function parseBreedPage(value: unknown): BreedPage {
     const breed = parseBreed(item);
     return breed ? [breed] : [];
   });
+  const details = value.data.flatMap((item) => {
+    try {
+      return [parseBreedDetailsRecord(item)];
+    } catch {
+      return [];
+    }
+  });
 
   return {
     breeds,
+    ...(details.length > 0 ? { details } : {}),
     pagination: {
       currentPage,
       nextPage,

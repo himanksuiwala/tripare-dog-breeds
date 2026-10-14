@@ -167,12 +167,12 @@ function parseImages(value: unknown): BreedImage[] {
   });
 }
 
-export function parseBreedDetails(value: unknown): BreedDetails {
-  if (!isRecord(value) || !isRecord(value.data)) {
-    throw new Error("Dog API returned an invalid response.");
+export function parseBreedDetailsRecord(value: unknown): BreedDetails {
+  if (!isRecord(value)) {
+    throw new Error("Dog API returned invalid breed details.");
   }
 
-  const { data } = value;
+  const data = value;
   const attributes = data.attributes;
   if (
     typeof data.id !== "string" ||
@@ -204,6 +204,13 @@ export function parseBreedDetails(value: unknown): BreedDetails {
     traits: parseTraits(attributes.traits),
     images: parseImages(attributes.images),
   };
+}
+
+export function parseBreedDetails(value: unknown): BreedDetails {
+  if (!isRecord(value) || !isRecord(value.data)) {
+    throw new Error("Dog API returned an invalid response.");
+  }
+  return parseBreedDetailsRecord(value.data);
 }
 
 export async function fetchBreedDetails(
