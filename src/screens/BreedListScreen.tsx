@@ -137,7 +137,9 @@ export function BreedListScreen() {
   );
   const activeCount = countActiveFilters(filters);
   const controlsDisabled =
-    state.isCompletingCatalogue && !state.isCatalogueIncomplete;
+    state.breeds.length === 0 &&
+    state.isCompletingCatalogue &&
+    !state.isCatalogueIncomplete;
   const openBreed = useCallback(
     (breedId: string) => navigation.navigate("BreedDetails", { breedId }),
     [navigation],
@@ -206,15 +208,10 @@ export function BreedListScreen() {
       </SafeAreaView>
     );
 
-  const displayedCount =
-    debouncedSearch.trim() || activeCount
-      ? results.length
-      : (state.totalRecords ?? state.breeds.length);
   return (
     <SafeAreaView className="flex-1 bg-doggo-canvas" edges={["top"]}>
       <Header
         activeCount={activeCount}
-        count={displayedCount}
         controlsDisabled={controlsDisabled}
         isCatalogueIncomplete={state.isCatalogueIncomplete}
         isCompletingCatalogue={state.isCompletingCatalogue}
@@ -224,11 +221,9 @@ export function BreedListScreen() {
           state.lastSuccessfulSyncAt,
           freshnessClock,
         )}
-        loadedCount={state.breeds.length}
         onFilter={openFilters}
         search={search}
         setSearch={setSearch}
-        totalCount={state.totalRecords}
       />
       <SectionList
         contentContainerClassName="flex-grow px-5 pb-8"
@@ -262,7 +257,7 @@ export function BreedListScreen() {
         refreshControl={
           <RefreshControl
             onRefresh={refresh}
-            refreshing={state.isRefreshing}
+            refreshing={state.isPullRefreshing}
             tintColor="#B65E3C"
           />
         }
@@ -294,84 +289,60 @@ export function BreedListScreen() {
 
 function Header({
   activeCount,
-  count,
   controlsDisabled,
   isCatalogueIncomplete,
   isCompletingCatalogue,
   isOffline,
   isRefreshing,
   lastSyncedLabel,
-  loadedCount,
   onFilter,
   search,
   setSearch,
-  totalCount,
 }: {
   activeCount: number;
-  count: number;
   controlsDisabled: boolean;
   isCatalogueIncomplete: boolean;
   isCompletingCatalogue: boolean;
   isOffline: boolean;
   isRefreshing: boolean;
   lastSyncedLabel: string | null;
-  loadedCount: number;
   onFilter: () => void;
   search: string;
   setSearch: (value: string) => void;
-  totalCount: number | null;
 }) {
-  const hasQuery = search.trim().length > 0 || activeCount > 0;
-  const countLabel = isCatalogueIncomplete
-    ? hasQuery
-      ? `${count} results from ${loadedCount} loaded breeds`
-      : `${loadedCount} of ${totalCount ?? loadedCount} breeds loaded`
-    : controlsDisabled
-      ? `${loadedCount} of ${totalCount ?? loadedCount} breeds loaded`
-      : `${count} breeds found`;
+  const statusLabel = isCatalogueIncomplete
+    ? isCompletingCatalogue
+      ? "Loading the remaining catalogue…"
+      : "Catalogue incomplete"
+    : isRefreshing
+      ? "Updating… Showing saved data"
+      : isOffline
+        ? `Offline${lastSyncedLabel ? ` · ${lastSyncedLabel}` : ""}`
+        : lastSyncedLabel;
+
   return (
-    <View className="px-5 pb-5 pt-6">
-      <Text className="text-sm font-semibold uppercase tracking-widest text-doggo-accent">
+    <View className="px-5 pb-3 pt-3">
+      <Text className="text-xs font-bold uppercase tracking-widest text-doggo-accent">
         Doggo
       </Text>
-      <Text className="mt-1 text-4xl font-black text-doggo-ink">
+      <Text className="mt-0.5 text-3xl font-black tracking-tight text-doggo-ink">
         Find your breed
       </Text>
-      <Text className="mt-2 text-base text-doggo-muted">{countLabel}</Text>
-      {lastSyncedLabel ? (
+      {statusLabel ? (
         <Text
           accessibilityLiveRegion="polite"
-          className="mt-1 text-sm font-semibold text-doggo-muted"
+          className="mt-1 text-xs font-medium text-doggo-muted"
+          numberOfLines={1}
         >
-          {isRefreshing
-            ? "Updating… Showing saved data"
-            : isOffline
-              ? `Offline · ${lastSyncedLabel}`
-              : lastSyncedLabel}
+          {statusLabel}
         </Text>
       ) : null}
-      {controlsDisabled ? (
-        <Text
-          accessibilityLiveRegion="polite"
-          className="mt-1 text-sm text-doggo-muted"
-        >
-          Loading the full catalogue… Search and filters will be available
-          shortly.
-        </Text>
-      ) : isCatalogueIncomplete && isCompletingCatalogue ? (
-        <Text
-          accessibilityLiveRegion="polite"
-          className="mt-1 text-sm text-doggo-muted"
-        >
-          Retrying the remaining breeds…
-        </Text>
-      ) : null}
-      <View className="mt-5 flex-row items-center">
-        <View className="mr-3 h-14 flex-1 flex-row items-center rounded-2xl border border-doggo-border bg-white pl-4 pr-1">
+      <View className="mt-3 flex-row items-center">
+        <View className="mr-2 h-12 flex-1 flex-row items-center rounded-2xl border border-doggo-border bg-white pl-4 pr-1">
           <TextInput
             accessibilityLabel="Search breeds"
             accessibilityState={{ disabled: controlsDisabled }}
-            className="h-full flex-1 py-0 text-lg leading-6 text-doggo-ink"
+            className="h-full flex-1 py-0 text-base leading-5 text-doggo-ink"
             onChangeText={setSearch}
             onSubmitEditing={Keyboard.dismiss}
             placeholder="Search breeds"
@@ -400,8 +371,8 @@ function Header({
           accessibilityState={{ disabled: controlsDisabled }}
           className={
             controlsDisabled
-              ? "h-14 flex-row items-center justify-center rounded-2xl border border-doggo-border bg-white px-5 opacity-50"
-              : "h-14 flex-row items-center justify-center rounded-2xl border border-doggo-border bg-white px-5 active:opacity-70"
+              ? "h-12 flex-row items-center justify-center rounded-2xl border border-doggo-border bg-white px-4 opacity-50"
+              : "h-12 flex-row items-center justify-center rounded-2xl border border-doggo-border bg-white px-4 active:opacity-70"
           }
           disabled={controlsDisabled}
           onPress={onFilter}

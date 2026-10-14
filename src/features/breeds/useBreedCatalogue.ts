@@ -27,6 +27,7 @@ type CatalogueState = {
   isOffline: boolean;
   isLoading: boolean;
   isRefreshing: boolean;
+  isPullRefreshing: boolean;
   isCompletingCatalogue: boolean;
   isCatalogueIncomplete: boolean;
   hasError: boolean;
@@ -44,6 +45,7 @@ const initialState: CatalogueState = {
   isOffline: false,
   isLoading: true,
   isRefreshing: false,
+  isPullRefreshing: false,
   isCompletingCatalogue: false,
   isCatalogueIncomplete: false,
   hasError: false,
@@ -85,6 +87,7 @@ export function useBreedCatalogue() {
       setState((value) => ({
         ...value,
         isRefreshing: value.breeds.length > 0,
+        isPullRefreshing: manual && value.breeds.length > 0,
         isCompletingCatalogue: value.breeds.length === 0,
         hasError: false,
         errorMessage: null,
@@ -103,6 +106,7 @@ export function useBreedCatalogue() {
           lastSuccessfulSyncAt: result.lastSuccessfulSyncAt,
           isLoading: false,
           isRefreshing: false,
+          isPullRefreshing: false,
           isCompletingCatalogue: false,
           isCatalogueIncomplete: false,
           hasError: false,
@@ -122,6 +126,7 @@ export function useBreedCatalogue() {
           lastSuccessfulSyncAt: cached.lastSuccessfulSyncAt,
           isLoading: false,
           isRefreshing: false,
+          isPullRefreshing: false,
           isCompletingCatalogue: false,
           isCatalogueIncomplete: cached.breeds.length > 0 && !cached.isComplete,
           hasError: cached.breeds.length === 0 && value.breeds.length === 0,
