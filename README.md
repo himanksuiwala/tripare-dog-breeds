@@ -68,6 +68,18 @@ See [Architecture](docs/ARCHITECTURE.md) for the complete system and data flow.
 
 See [Technical decisions](docs/DECISIONS.md) for rationale and the SQLite schema.
 
+## 3. Performance
+
+React Native's in-app Performance Monitor reported 60 UI FPS, 60 JS FPS, and
+452.64 MB RAM after five automated fast upward swipes through the 283-breed
+list. React Profiler recorded 617 commits during a complete IDB-driven list
+traversal.
+
+These figures come from a development build and include React Native DevTools
+and Performance Monitor overhead. See the [performance report](docs/PERFORMANCE.md)
+for the application-size breakdown, measurement process, and supporting
+screenshots.
+
 ## 4. Screenshots
 
 | Breed list                                                      | Filters applied                                                             |
