@@ -104,15 +104,17 @@ signed archive uploaded to App Store Connect.
 Measured on the iPhone 17 Pro simulator by scrolling through all 283 breeds with
 IDB while React Native's Performance Monitor and React Profiler were enabled.
 
-| Result                 |     Value |
-| ---------------------- | --------: |
-| UI FPS                 |        60 |
-| JS FPS                 |        60 |
-| RAM                    | 452.64 MB |
-| React Profiler commits |       617 |
+| Result                   |     Value |
+| ------------------------ | --------: |
+| UI FPS                   |        60 |
+| JS FPS                   |        60 |
+| RAM after fast scrolling | 452.64 MB |
+| React Profiler commits   |       617 |
 
 - [Performance Monitor overlay](screenshots/react-native-perf-overlay.png)
 - [React Profiler](screenshots/react-native-profiler-full-list.jpg)
 
-These are development-build diagnostics and are not directly comparable with
-Release-build measurements.
+The RAM reading was captured immediately after five automated fast upward
+swipes through the breed list. These are development-build diagnostics and
+include React Native DevTools and Performance Monitor overhead, so they are not
+directly comparable with optimized Release-build measurements.
