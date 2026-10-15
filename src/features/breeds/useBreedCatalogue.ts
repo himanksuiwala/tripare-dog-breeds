@@ -2,11 +2,7 @@ import { useCallback } from "react";
 
 import { useCatalogueSync } from "./CatalogueSyncContext";
 
-export {
-  fetchBreedPageWithLoader,
-  fetchBreedPageWithRetry,
-  mergeBreedPages,
-} from "./useBreedCatalogueHelpers";
+export { mergeBreedPages } from "./useBreedCatalogueHelpers";
 
 export function useBreedCatalogue() {
   const { catalogue, state: syncState, sync } = useCatalogueSync();

@@ -1,4 +1,5 @@
 import { parseBreedDetailsRecord, type BreedDetails } from "./breedDetails";
+import { ApiResponseError, HttpRequestError, retryRequest } from "./retry";
 
 const BREEDS_ENDPOINT = "https://dogapi.dog/api/v2/breeds";
 
@@ -161,16 +162,28 @@ export async function fetchBreedGroups(
   signal?: AbortSignal,
   fetcher: Fetcher = fetch,
 ): Promise<BreedGroup[]> {
-  const response = await fetcher(
-    "https://dogapi.dog/api/v2/groups?page[size]=1000",
+  return retryRequest(
+    async () => {
+      const response = await fetcher(
+        "https://dogapi.dog/api/v2/groups?page[size]=1000",
+        { signal },
+      );
+      if (!response.ok) {
+        throw new HttpRequestError(
+          `Dog API group request failed with status ${response.status}.`,
+          response.status,
+        );
+      }
+      try {
+        return parseBreedGroups(await response.json());
+      } catch (error: unknown) {
+        throw new ApiResponseError("Dog API returned invalid group data.", {
+          cause: error,
+        });
+      }
+    },
     { signal },
   );
-  if (!response.ok) {
-    throw new Error(
-      `Dog API group request failed with status ${response.status}.`,
-    );
-  }
-  return parseBreedGroups(await response.json());
 }
 
 export function parseBreedPage(value: unknown): BreedPage {
@@ -220,12 +233,26 @@ export async function fetchBreedPage(
   signal?: AbortSignal,
   fetcher: Fetcher = fetch,
 ): Promise<BreedPage> {
-  const url = `${BREEDS_ENDPOINT}?page[number]=${page}&page[size]=${BREEDS_PAGE_SIZE}`;
-  const response = await fetcher(url, { signal });
+  return retryRequest(
+    async () => {
+      const url = `${BREEDS_ENDPOINT}?page[number]=${page}&page[size]=${BREEDS_PAGE_SIZE}`;
+      const response = await fetcher(url, { signal });
 
-  if (!response.ok) {
-    throw new Error(`Dog API request failed with status ${response.status}.`);
-  }
+      if (!response.ok) {
+        throw new HttpRequestError(
+          `Dog API request failed with status ${response.status}.`,
+          response.status,
+        );
+      }
 
-  return parseBreedPage(await response.json());
+      try {
+        return parseBreedPage(await response.json());
+      } catch (error: unknown) {
+        throw new ApiResponseError("Dog API returned an invalid response.", {
+          cause: error,
+        });
+      }
+    },
+    { signal },
+  );
 }

@@ -4,6 +4,7 @@ import type { BreedDetails } from "../../api/breedDetails";
 import {
   BREEDS_PAGE_SIZE,
   fetchBreedGroups,
+  fetchBreedPage,
   type Breed,
   type BreedGroup,
 } from "../../api/breeds";
@@ -11,10 +12,7 @@ import {
   readCachedCatalogue,
   replaceCachedCatalogue,
 } from "../../data/catalogueDatabase";
-import {
-  fetchBreedPageWithRetry,
-  mergeBreedPages,
-} from "./useBreedCatalogueHelpers";
+import { mergeBreedPages } from "./useBreedCatalogueHelpers";
 
 export type CatalogueSyncProgress = {
   breeds: Breed[];
@@ -81,7 +79,7 @@ async function runCatalogueSync(
   let expectedTotalRecords: number | null = null;
 
   try {
-    const firstPage = await fetchBreedPageWithRetry(1, controller.signal);
+    const firstPage = await fetchBreedPage(1, controller.signal);
     pages.push({ page: 1, ...firstPage });
     const totalPages = firstPage.pagination.lastPage;
     const totalRecords = firstPage.pagination.totalRecords;
@@ -117,7 +115,7 @@ async function runCatalogueSync(
     });
 
     for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
-      const page = await fetchBreedPageWithRetry(pageNumber, controller.signal);
+      const page = await fetchBreedPage(pageNumber, controller.signal);
       pages.push({ page: pageNumber, ...page });
       await persistFirstRunProgress();
       onProgress?.({

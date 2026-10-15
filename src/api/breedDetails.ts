@@ -1,3 +1,10 @@
+import {
+  ApiResponseError,
+  HttpRequestError,
+  NonRetryableRequestError,
+  retryRequest,
+} from "./retry";
+
 const BREEDS_ENDPOINT = "https://dogapi.dog/api/v2/breeds";
 
 export type Range = {
@@ -52,7 +59,7 @@ export type BreedDetails = {
   images: BreedImage[];
 };
 
-export class BreedNotFoundError extends Error {
+export class BreedNotFoundError extends NonRetryableRequestError {
   constructor() {
     super("Breed not found.");
     this.name = "BreedNotFoundError";
@@ -218,18 +225,32 @@ export async function fetchBreedDetails(
   signal?: AbortSignal,
   fetcher: Fetcher = fetch,
 ): Promise<BreedDetails> {
-  const response = await fetcher(
-    `${BREEDS_ENDPOINT}/${encodeURIComponent(breedId)}`,
+  return retryRequest(
+    async () => {
+      const response = await fetcher(
+        `${BREEDS_ENDPOINT}/${encodeURIComponent(breedId)}`,
+        { signal },
+      );
+
+      if (response.status === 404) {
+        throw new BreedNotFoundError();
+      }
+
+      if (!response.ok) {
+        throw new HttpRequestError(
+          `Dog API request failed with status ${response.status}.`,
+          response.status,
+        );
+      }
+
+      try {
+        return parseBreedDetails(await response.json());
+      } catch (error: unknown) {
+        throw new ApiResponseError("Dog API returned an invalid response.", {
+          cause: error,
+        });
+      }
+    },
     { signal },
   );
-
-  if (response.status === 404) {
-    throw new BreedNotFoundError();
-  }
-
-  if (!response.ok) {
-    throw new Error(`Dog API request failed with status ${response.status}.`);
-  }
-
-  return parseBreedDetails(await response.json());
 }

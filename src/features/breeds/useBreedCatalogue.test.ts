@@ -1,8 +1,5 @@
-import type { Breed, BreedPage } from "../../api/breeds";
-import {
-  fetchBreedPageWithLoader,
-  mergeBreedPages,
-} from "./useBreedCatalogueHelpers";
+import type { Breed } from "../../api/breeds";
+import { mergeBreedPages } from "./useBreedCatalogueHelpers";
 
 function breed(id: string): Breed {
   return {
@@ -46,28 +43,5 @@ describe("mergeBreedPages", () => {
     expect(initialBreeds.map((item) => item.id)).toEqual(["a", "b"]);
     expect(completeBreeds.map((item) => item.id)).toEqual(["a", "b", "c", "d"]);
     expect(initialPages.map((page) => page.page)).toEqual([1, 2]);
-  });
-});
-
-describe("fetchBreedPageWithLoader", () => {
-  it("retries an individual failed page without discarding the catalogue", async () => {
-    const page: BreedPage = {
-      breeds: [breed("a")],
-      pagination: {
-        currentPage: 2,
-        nextPage: 3,
-        lastPage: 6,
-        totalRecords: 283,
-      },
-    };
-    const loader = jest
-      .fn()
-      .mockRejectedValueOnce(new Error("temporary network failure"))
-      .mockResolvedValueOnce(page);
-
-    await expect(
-      fetchBreedPageWithLoader(2, new AbortController().signal, 3, loader),
-    ).resolves.toEqual(page);
-    expect(loader).toHaveBeenCalledTimes(2);
   });
 });

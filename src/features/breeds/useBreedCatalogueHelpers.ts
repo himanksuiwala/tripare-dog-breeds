@@ -1,6 +1,4 @@
-import { fetchBreedPage, type Breed, type BreedPage } from "../../api/breeds";
-
-const CATALOGUE_REQUEST_ATTEMPTS = 3;
+import type { Breed } from "../../api/breeds";
 
 export function mergeBreedPages(
   pages: { page: number; breeds: Breed[] }[],
@@ -10,32 +8,4 @@ export function mergeBreedPages(
     for (const breed of result.breeds) unique.set(breed.id, breed);
   }
   return [...unique.values()];
-}
-
-export async function fetchBreedPageWithRetry(
-  pageNumber: number,
-  signal: AbortSignal,
-  attempts = CATALOGUE_REQUEST_ATTEMPTS,
-) {
-  return fetchBreedPageWithLoader(pageNumber, signal, attempts, fetchBreedPage);
-}
-
-export async function fetchBreedPageWithLoader(
-  pageNumber: number,
-  signal: AbortSignal,
-  attempts: number,
-  loader: (page: number, signal?: AbortSignal) => Promise<BreedPage>,
-) {
-  let lastError: unknown;
-  for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    try {
-      return await loader(pageNumber, signal);
-    } catch (error: unknown) {
-      if (signal.aborted) throw error;
-      lastError = error;
-    }
-  }
-  throw new Error(
-    `Page ${pageNumber}: ${lastError instanceof Error ? lastError.message : "Could not load breed page."}`,
-  );
 }
