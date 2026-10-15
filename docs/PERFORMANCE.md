@@ -98,3 +98,21 @@ The compressed download size is an estimate, not the final App Store value.
 Apple's signing, encryption, processing, and device-specific thinning can change
 both download and installed sizes. Authoritative per-device values require a
 signed archive uploaded to App Store Connect.
+
+## React Native development profile
+
+Measured on the iPhone 17 Pro simulator by scrolling through all 283 breeds with
+IDB while React Native's Performance Monitor and React Profiler were enabled.
+
+| Result                 |     Value |
+| ---------------------- | --------: |
+| UI FPS                 |        60 |
+| JS FPS                 |        60 |
+| RAM                    | 452.64 MB |
+| React Profiler commits |       617 |
+
+- [Performance Monitor overlay](screenshots/react-native-perf-overlay.png)
+- [React Profiler](screenshots/react-native-profiler-full-list.jpg)
+
+These are development-build diagnostics and are not directly comparable with
+Release-build measurements.
