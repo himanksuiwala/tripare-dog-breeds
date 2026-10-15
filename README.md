@@ -86,6 +86,10 @@ screenshots.
 | --------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | ![Breed catalogue](docs/screenshots/app/01-breed-catalogue.jpg) | ![Filtered breed catalogue](docs/screenshots/app/05-filtered-catalogue.jpg) |
 
+| Offline cached catalogue                                                   |
+| -------------------------------------------------------------------------- |
+| ![Offline cached catalogue](docs/screenshots/app/12-offline-catalogue.jpg) |
+
 | Detail overview                                                        | Traits                                                      |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------- |
 | ![Breed detail overview](docs/screenshots/app/07-details-overview.jpg) | ![Breed traits](docs/screenshots/app/08-details-traits.jpg) |
@@ -94,7 +98,5 @@ screenshots.
 | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
 | ![Breed gallery grid](docs/screenshots/app/09-details-gallery.jpg) | ![Full-screen breed gallery](docs/screenshots/app/10-fullscreen-gallery.jpg) |
 
-The catalogue header also hosts the offline and synchronization status banner.
-A dedicated offline capture is not currently included in the screenshot set.
 See the [screenshot index](docs/screenshots/app/README.md) for every captured
 state.
